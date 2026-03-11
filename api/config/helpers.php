@@ -34,12 +34,12 @@ function sanitizeInput($data) {
 }
 
 /**
- * Récupère les données JSON du body de la requête et les nettoie
+ * Récupère les données JSON du body de la requête
  */
 function getRequestBody() {
     $body = file_get_contents("php://input");
     $data = json_decode($body, true);
-    return $data ? sanitizeInput($data) : [];
+    return $data ?: [];
 }
 
 /**
