@@ -96,10 +96,23 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
         $demandeId = $db->lastInsertId();
 
-        // 1. Mise à jour de l'annonce : passage en "en_negociation"
+        // 1. Mise à jour de l'annonce : passage en "en_negociation" et mise à jour des stocks
         if ($data['annonce_id']) {
             $stmt = $db->prepare("UPDATE annonces SET statut = 'en_negociation' WHERE id = :id AND statut = 'active'");
             $stmt->execute(['id' => (int)$data['annonce_id']]);
+
+            // Equivalent du trigger 'apres_demande_inseree' : mise à jour des stocks
+            $stmt = $db->prepare("
+                UPDATE produits p
+                JOIN annonces a ON p.id = a.produit_id
+                SET p.stock_actuel = p.stock_actuel - :quantite,
+                    p.stock_reserve = p.stock_reserve + :quantite
+                WHERE a.id = :annonce_id
+            ");
+            $stmt->execute([
+                'quantite' => (int)$data['quantite'],
+                'annonce_id' => (int)$data['annonce_id']
+            ]);
         }
 
         // 2. Créer une notification pour le destinataire
@@ -152,13 +165,42 @@ switch ($_SERVER['REQUEST_METHOD']) {
         $stmt = $db->prepare($sql);
         $stmt->execute($params);
 
-        // Mise à jour de l'annonce si la transaction est terminée
-        if ($data['statut'] === 'terminee' && $demande['annonce_id']) {
+        // --- Début du remplacement des triggers MySQL ---
+        $oldStatut = $demande['statut'];
+        $nouveauStatut = $data['statut'];
+        $quantite = (int)$demande['quantite'];
+        $annonceId = $demande['annonce_id'];
+
+        if ($nouveauStatut === 'terminee' && $oldStatut !== 'terminee' && $annonceId) {
+            // Equivalent du trigger : libère le stock réservé car la demande est confirmée
+            $stmt = $db->prepare("
+                UPDATE produits p
+                JOIN annonces a ON p.id = a.produit_id
+                SET p.stock_reserve = p.stock_reserve - :quantite
+                WHERE a.id = :annonce_id
+            ");
+            $stmt->execute(['quantite' => $quantite, 'annonce_id' => $annonceId]);
+
+            // Mise à jour de l'annonce en 'vendue'
             $stmt = $db->prepare("UPDATE annonces SET statut = 'vendue' WHERE id = :id");
-            $stmt->execute(['id' => $demande['annonce_id']]);
-        } 
-        // Si tout est annulé/refusé, on pourrait techniquement repasser en 'active' 
-        // mais pour une demo simplifiée, restons sur cette logique.
+            $stmt->execute(['id' => $annonceId]);
+
+        } elseif (in_array($nouveauStatut, ['annulee', 'refusee']) && $oldStatut === 'en_attente' && $annonceId) {
+            // Equivalent du trigger : remet le stock réservé dans le stock disponible
+            $stmt = $db->prepare("
+                UPDATE produits p
+                JOIN annonces a ON p.id = a.produit_id
+                SET p.stock_actuel = p.stock_actuel + :quantite,
+                    p.stock_reserve = p.stock_reserve - :quantite
+                WHERE a.id = :annonce_id
+            ");
+            $stmt->execute(['quantite' => $quantite, 'annonce_id' => $annonceId]);
+
+            // On remet l'annonce en état 'active' si ce n'est plus en négociation
+            $stmt = $db->prepare("UPDATE annonces SET statut = 'active' WHERE id = :id AND statut = 'en_negociation'");
+            $stmt->execute(['id' => $annonceId]);
+        }
+        // --- Fin du remplacement ---
 
         // Notification
         $notifTarget = ($demande['demandeur_id'] == $pharmacieId) ? $demande['destinataire_id'] : $demande['demandeur_id'];

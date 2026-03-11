@@ -250,39 +250,41 @@ INSERT INTO `demandes` (`id`, `annonce_id`, `demandeur_id`, `destinataire_id`, `
 
 --
 -- Déclencheurs `demandes`
---
-DELIMITER $$
-CREATE TRIGGER `apres_demande_inseree` AFTER INSERT ON `demandes` FOR EACH ROW BEGIN
-    -- On met à jour le produit lié à l'annonce
-    UPDATE produits p
-    JOIN annonces a ON p.id = a.produit_id
-    SET p.stock_actuel = p.stock_actuel - NEW.quantite,
-        p.stock_reserve = p.stock_reserve + NEW.quantite
-    WHERE a.id = NEW.annonce_id;
-END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `maj_stock_selon_statut` AFTER UPDATE ON `demandes` FOR EACH ROW BEGIN
-    -- Si la demande est terminée (échange réussi)
-    IF NEW.statut = 'terminee' AND OLD.statut != 'terminee' THEN
-        UPDATE produits p
-        JOIN annonces a ON p.id = a.produit_id
-        SET p.stock_reserve = p.stock_reserve - NEW.quantite
-        WHERE a.id = NEW.annonce_id;
-        
-    -- Si la demande est annulée ou refusée (on rend le stock)
-    ELSEIF (NEW.statut = 'annulee' OR NEW.statut = 'refusee') 
-           AND OLD.statut = 'en_attente' THEN
-        UPDATE produits p
-        JOIN annonces a ON p.id = a.produit_id
-        SET p.stock_actuel = p.stock_actuel + NEW.quantite,
-            p.stock_reserve = p.stock_reserve - NEW.quantite
-        WHERE a.id = NEW.annonce_id;
-    END IF;
-END
-$$
-DELIMITER ;
+-- (Désactivés car les requêtes TRIGGER sont interdites sur certains hébergements mutualisés. 
+-- La logique a été déplacée dans le code PHP de l'API : api/requests/index.php)
+
+-- DELIMITER $$
+-- CREATE TRIGGER `apres_demande_inseree` AFTER INSERT ON `demandes` FOR EACH ROW BEGIN
+--     -- On met à jour le produit lié à l'annonce
+--     UPDATE produits p
+--     JOIN annonces a ON p.id = a.produit_id
+--     SET p.stock_actuel = p.stock_actuel - NEW.quantite,
+--         p.stock_reserve = p.stock_reserve + NEW.quantite
+--     WHERE a.id = NEW.annonce_id;
+-- END
+-- $$
+-- DELIMITER ;
+-- DELIMITER $$
+-- CREATE TRIGGER `maj_stock_selon_statut` AFTER UPDATE ON `demandes` FOR EACH ROW BEGIN
+--     -- Si la demande est terminée (échange réussi)
+--     IF NEW.statut = 'terminee' AND OLD.statut != 'terminee' THEN
+--         UPDATE produits p
+--         JOIN annonces a ON p.id = a.produit_id
+--         SET p.stock_reserve = p.stock_reserve - NEW.quantite
+--         WHERE a.id = NEW.annonce_id;
+--         
+--     -- Si la demande est annulée ou refusée (on rend le stock)
+--     ELSEIF (NEW.statut = 'annulee' OR NEW.statut = 'refusee') 
+--            AND OLD.statut = 'en_attente' THEN
+--         UPDATE produits p
+--         JOIN annonces a ON p.id = a.produit_id
+--         SET p.stock_actuel = p.stock_actuel + NEW.quantite,
+--             p.stock_reserve = p.stock_reserve - NEW.quantite
+--         WHERE a.id = NEW.annonce_id;
+--     END IF;
+-- END
+-- $$
+-- DELIMITER ;
 
 -- --------------------------------------------------------
 
