@@ -15,11 +15,11 @@ class Database {
         }
 
         // Utilisation des variables d'environnement (définies dans config.local.php ou par le serveur)
-        // En local, on utilise les valeurs par défaut de XAMPP
-        $this->host = getenv('DB_HOST') ?: "localhost";
-        $this->db_name = getenv('DB_NAME') ?: "pharmshare";
-        $this->username = getenv('DB_USER') ?: "root";
-        $this->password = getenv('DB_PASS') ?: "";
+        // On vérifie $_ENV puis getenv() pour une compatibilité maximale
+        $this->host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: "localhost";
+        $this->db_name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: "pharmshare";
+        $this->username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: "root";
+        $this->password = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: "";
     }
 
     public function getConnection() {
