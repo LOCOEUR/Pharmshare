@@ -1,7 +1,6 @@
-// Détection automatique de l'URL de l'API (Local vs Production)
 const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost/Pharmshare/api'
-    : 'https://votre-url-api.com'; // Remplacez par votre URL de serveur PHP en ligne
+    : 'http://phamshare.kesug.com/api'; // Votre URL InfinityFree
 
 // ============================================================
 // Utilitaires HTTP
