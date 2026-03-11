@@ -1,0 +1,45 @@
+.skeleton-base {
+    background: linear-gradient(90deg,
+            var(--bg-card, #111827) 25%,
+            var(--border, #374151) 50%,
+            var(--bg-card, #111827) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+    opacity: 0.7;
+}
+
+.skeleton-circle {
+    border-radius: 50%;
+}
+
+.skeleton-rect {
+    border-radius: 8px;
+}
+
+.skeleton-text {
+    margin-bottom: 0.5rem;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Light mode support if applicable */
+:root {
+    --skeleton-bg: #f3f4f6;
+    --skeleton-shimmer: #e5e7eb;
+}
+
+[data-theme='light'] .skeleton-base {
+    background: linear-gradient(90deg,
+            var(--skeleton-bg) 25%,
+            var(--skeleton-shimmer) 50%,
+            var(--skeleton-bg) 75%);
+}

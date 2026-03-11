@@ -1,0 +1,249 @@
+.receipt-container {
+    background: white;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20px;
+    margin: 0 auto;
+    color: #333;
+    font-family: 'Inter', system-ui, sans-serif;
+    position: relative;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.receipt-header-bar {
+    height: 12px;
+    background-color: #1e4b8d;
+    margin-bottom: 40px;
+}
+
+.receipt-content {
+    padding: 20px 40px;
+}
+
+.receipt-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 50px;
+}
+
+.issuer-info .pharmacy-name {
+    color: #1e4b8d;
+    font-size: 1.4rem;
+    font-weight: 800;
+    margin: 0 0 5px 0;
+    text-transform: uppercase;
+}
+
+.issuer-info p {
+    margin: 2px 0;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.receipt-label {
+    position: relative;
+}
+
+.receipt-label h1 {
+    font-size: 4.5rem;
+    color: #e2e8f0;
+    margin: 0;
+    font-weight: 900;
+    letter-spacing: 5px;
+}
+
+.receipt-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 50px;
+}
+
+.receipt-meta strong {
+    color: #475569;
+}
+
+.receipt-meta p {
+    margin: 8px 0;
+    font-size: 1.05rem;
+}
+
+.order-num {
+    color: #1e4b8d;
+    font-weight: 800;
+    background: rgba(30, 75, 141, 0.05);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 50px;
+    border: 1px solid #cbd5e1;
+}
+
+.receipt-table th {
+    background-color: #f8fafc;
+    text-align: left;
+    padding: 14px 18px;
+    border: 1px solid #cbd5e1;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #475569;
+}
+
+.receipt-table td {
+    padding: 16px 18px;
+    border: 1px solid #cbd5e1;
+    font-size: 1rem;
+    color: #1e293b;
+}
+
+.promo-row td {
+    color: #ef4444;
+    font-style: italic;
+}
+
+.receipt-totals {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 80px;
+}
+
+.totals-box {
+    background-color: #f8fafc;
+    padding: 24px;
+    min-width: 320px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.total-line {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.total-line.net {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 2px solid #e2e8f0;
+    font-size: 1.3rem;
+    color: #1e4b8d;
+    font-weight: 800;
+}
+
+.receipt-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 60px;
+    padding-bottom: 40px;
+}
+
+.qr-section {
+    border: 1px solid #cbd5e1;
+    padding: 10px;
+    border-radius: 8px;
+    background: white;
+}
+
+.qr-placeholder svg {
+    color: #94a3b8;
+}
+
+.signature-section {
+    display: flex;
+    gap: 60px;
+}
+
+.signature-box {
+    text-align: center;
+}
+
+.signature-box p {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 60px;
+    color: #475569;
+}
+
+.sig-line {
+    width: 180px;
+    border-bottom: 2px dashed #cbd5e1;
+}
+
+.receipt-actions {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 2000;
+}
+
+.receipt-actions button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 30px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-pro-pdf {
+    background-color: #10B981;
+    color: white;
+    border: none;
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3) !important;
+}
+
+.btn-pro-pdf:hover:not(:disabled) {
+    background-color: #059669;
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4) !important;
+}
+
+.btn-pro-pdf:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Print specific styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    #printable-receipt,
+    #printable-receipt * {
+        visibility: visible;
+    }
+
+    #printable-receipt {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        z-index: 9999;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+}

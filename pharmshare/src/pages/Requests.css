@@ -1,0 +1,485 @@
+/* Styles spécifiques aux demandes */
+
+.requests-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.requests-tabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    color: var(--primary);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    /* S'aligne avec le bas de la bordure du conteneur */
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary);
+    border-radius: 3px 3px 0 0;
+}
+
+.request-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.request-card:hover {
+    background-color: var(--card-hover);
+    transform: translateX(4px);
+}
+
+.request-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.request-icon {
+    width: 50px;
+    height: 50px;
+    background-color: rgba(16, 185, 129, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.request-details h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.request-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.request-part {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.request-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-accept {
+    background-color: var(--primary);
+    color: #022c22;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-accept:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-reject {
+    background-color: transparent;
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-reject:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: #f87171;
+}
+
+.status-badge-lg {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-approved {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-pending {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-rejected {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-track {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--primary);
+    color: #022c22;
+    border: 1.5px solid var(--primary);
+    padding: 0.7rem 1.6rem;
+    border-radius: 2rem;
+    font-weight: 800;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    letter-spacing: 0.6px;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2);
+}
+
+.btn-track:hover {
+    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
+    transform: translateY(-3px) scale(1.03);
+    filter: brightness(1.1);
+}
+
+.btn-track::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -100%;
+    width: 30%;
+    height: 200%;
+    background: linear-gradient(to right,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.4) 50%,
+            rgba(255, 255, 255, 0) 100%);
+    transform: rotate(30deg);
+    transition: all 0.6s ease;
+    filter: blur(2px);
+}
+
+.btn-track:hover::after {
+    left: 150%;
+}
+
+.btn-track svg {
+    width: 16px;
+    height: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-track:hover svg {
+    transform: translateX(3px) scale(1.1);
+}
+
+/* Suivi de commande et simulation de carte */
+.tracking-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(11, 21, 19, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 2rem;
+}
+
+.tracking-modal {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 900px;
+    height: 85vh;
+    border-radius: 1.5rem;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.tracking-header {
+    padding: 1.5rem 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tracking-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    overflow: hidden;
+}
+
+.tracking-map-container {
+    background: #0b1513;
+    position: relative;
+    overflow: hidden;
+}
+
+#tracking-map {
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.custom-map-marker {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.marker-pin {
+    width: 30px;
+    height: 30px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.marker-pin.start {
+    background: #6B7280;
+    /* Gris pour le départ */
+}
+
+.marker-pin.destination {
+    background: var(--primary);
+    /* Émeraude pour l'arrivée */
+    animation: pulse-marker 2s infinite;
+}
+
+@keyframes pulse-marker {
+    0% {
+        transform: rotate(-45deg) scale(1);
+    }
+
+    50% {
+        transform: rotate(-45deg) scale(1.1);
+        box-shadow: 0 0 20px var(--primary);
+    }
+
+    100% {
+        transform: rotate(-45deg) scale(1);
+    }
+}
+
+.marker-pin::after {
+    content: '';
+    width: 100%;
+    height: 100%;
+    background: inherit;
+    border-radius: 50%;
+    opacity: 0.3;
+    position: absolute;
+    animation: ripple 2s infinite;
+}
+
+.car-marker {
+    background: transparent !important;
+    border: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.car-wrapper {
+    background: white;
+    padding: 8px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    border: 3px solid var(--primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.3s ease;
+    will-change: transform;
+}
+
+.car-wrapper svg {
+    color: #1a1a1a;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+.tracking-sidebar {
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.1);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+}
+
+.status-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+}
+
+.status-steps::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 11px;
+    width: 2px;
+    height: calc(100% - 20px);
+    background: var(--border);
+}
+
+.status-step {
+    display: flex;
+    gap: 1.5rem;
+    position: relative;
+    opacity: 0.4;
+}
+
+.status-step.active,
+.status-step.completed {
+    opacity: 1;
+}
+
+.step-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    flex-shrink: 0;
+    transition: all 0.3s;
+}
+
+.status-step.completed .step-indicator {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #022c22;
+}
+
+.status-step.active .step-indicator {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+}
+
+.step-label h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.step-label p {
+    margin: 4px 0 0 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.tracking-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-print {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-print:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+
+/* Surcharges en mode clair */
+body.light-mode .request-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .tracking-modal {
+    background: white;
+}
+
+body.light-mode .tracking-map-container {
+    background: #f8fafc;
+}
+
+body.light-mode .map-simulation {
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+}

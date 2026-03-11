@@ -1,0 +1,22 @@
+# Pharmacy Manager Root Gitignore
+
+# PHP
+api/config/config.local.php
+api/logs/*.log
+
+# Node (React)
+pharmshare/node_modules/
+pharmshare/dist/
+pharmshare/dist-ssr/
+pharmshare/*.local
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Database
+*.sql
+!schema.sql

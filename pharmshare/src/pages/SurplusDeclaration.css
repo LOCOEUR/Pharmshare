@@ -1,0 +1,126 @@
+/* Surplus Declaration Specific Styles */
+
+.surplus-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.surplus-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.surplus-info-box {
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.info-icon {
+    color: #3b82f6;
+    flex-shrink: 0;
+}
+
+.info-text h4 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.info-text p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.search-product-box {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    margin-top: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+    box-shadow: var(--shadow-lg);
+}
+
+.search-result-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+}
+
+.search-result-item:hover {
+    background-color: var(--bg-input);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.btn-submit-surplus {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--primary);
+    color: #022c22;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-submit-surplus:hover {
+    background-color: var(--primary-hover);
+}
+
+.btn-submit-surplus:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+.preview-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--primary);
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+}

@@ -1,0 +1,18 @@
+.product-image-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    border-radius: inherit;
+    border: 1px dashed var(--border);
+}
+
+.product-image-actual {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: inherit;
+}
