@@ -1392,8 +1392,7 @@ CREATE TABLE `parametres` (
 --
 
 INSERT INTO `parametres` (`id`, `pharmacie_id`, `theme`, `langue`, `notif_email`, `notif_stock`, `notif_demandes`, `notif_messages`, `seuil_alerte_jours`, `date_modification`) VALUES
-(1, 1, 'dark', 'fr', 1, 1, 1, 1, 90, '2026-02-13 11:31:01'),
-(2, 7, 'dark', 'fr', 1, 1, 1, 1, 90, '2026-02-19 08:57:02');
+(1, 1, 'dark', 'fr', 1, 1, 1, 1, 90, '2026-02-13 11:31:01');
 
 -- --------------------------------------------------------
 
@@ -1577,51 +1576,9 @@ INSERT INTO `users` (`id`, `pharmacie_id`, `nom`, `email`, `mot_de_passe`, `role
 
 -- --------------------------------------------------------
 
---
--- Doublure de structure pour la vue `vue_alertes_stock`
--- (Voir ci-dessous la vue réelle)
---
-CREATE TABLE `vue_alertes_stock` (
-`id` int(11)
-,`nom` varchar(255)
-,`stock_actuel` int(11)
-,`stock_minimum` int(11)
-,`date_expiration` date
-,`pharmacie_nom` varchar(255)
-,`alerte_type` varchar(17)
-);
+-- Views removed for shared hosting compatibility (InfinityFree)
+-- Logic migrated to PHP API
 
--- --------------------------------------------------------
-
---
--- Doublure de structure pour la vue `vue_dashboard`
--- (Voir ci-dessous la vue réelle)
---
-CREATE TABLE `vue_dashboard` (
-`pharmacie_id` int(11)
-,`total_produits` bigint(21)
-,`produits_en_alerte` bigint(21)
-,`expirations_proches` bigint(21)
-,`notifs_non_lues` bigint(21)
-);
-
--- --------------------------------------------------------
-
---
--- Structure de la vue `vue_alertes_stock`
---
-DROP TABLE IF EXISTS `vue_alertes_stock`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
-
--- --------------------------------------------------------
-
---
--- Structure de la vue `vue_dashboard`
---
-DROP TABLE IF EXISTS `vue_dashboard`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
 
 --
 -- Index pour les tables déchargées
@@ -1902,8 +1859,7 @@ ALTER TABLE `parametres`
 -- Contraintes pour la table `produits`
 --
 ALTER TABLE `produits`
-  ADD CONSTRAINT `produits_ibfk_1` FOREIGN KEY (`pharmacie_id`) REFERENCES `pharmacies` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `produits_ibfk_2` FOREIGN KEY (`categorie_id`) REFERENCES `categories_produits` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `produits_ibfk_1` FOREIGN KEY (`pharmacie_id`) REFERENCES `pharmacies` (`id`) ON DELETE CASCADE;
 
 --
 -- Contraintes pour la table `rapports`

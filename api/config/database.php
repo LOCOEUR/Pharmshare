@@ -8,7 +8,13 @@ class Database {
     private $conn;
 
     public function __construct() {
-        // En production, ces variables seront lues depuis l'environnement de l'hébergeur
+        // Chargement de la configuration locale ou de production si elle existe
+        $localConfig = __DIR__ . '/config.local.php';
+        if (file_exists($localConfig)) {
+            require_once $localConfig;
+        }
+
+        // Utilisation des variables d'environnement (définies dans config.local.php ou par le serveur)
         // En local, on utilise les valeurs par défaut de XAMPP
         $this->host = getenv('DB_HOST') ?: "localhost";
         $this->db_name = getenv('DB_NAME') ?: "pharmshare";
