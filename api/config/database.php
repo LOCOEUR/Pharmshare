@@ -14,12 +14,11 @@ class Database {
             require_once $localConfig;
         }
 
-        // Utilisation des variables d'environnement (définies dans config.local.php ou par le serveur)
-        // On vérifie $_ENV puis getenv() pour une compatibilité maximale
-        $this->host = $_ENV['DB_HOST'] ?? getenv('DB_HOST') ?: "localhost";
-        $this->db_name = $_ENV['DB_NAME'] ?? getenv('DB_NAME') ?: "pharmshare";
-        $this->username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: "root";
-        $this->password = $_ENV['DB_PASS'] ?? getenv('DB_PASS') ?: "";
+        // Utilisation des constantes (définies dans config.local.php) ou des variables d'environnement
+        $this->host = (defined('DB_HOST')) ? DB_HOST : (getenv('DB_HOST') ?: "localhost");
+        $this->db_name = (defined('DB_NAME')) ? DB_NAME : (getenv('DB_NAME') ?: "pharmshare");
+        $this->username = (defined('DB_USER')) ? DB_USER : (getenv('DB_USER') ?: "root");
+        $this->password = (defined('DB_PASS')) ? DB_PASS : (getenv('DB_PASS') ?: "");
     }
 
     public function getConnection() {
