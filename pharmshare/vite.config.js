@@ -5,6 +5,6 @@ import react from '@vitejs/plugin-react-swc'
 export default defineConfig({
   plugins: [react()],
   build: {
-    chunkSizeWarningLimit: 2000, // Augmente encore la limite pour supprimer l'avertissement sur Vercel
+    chunkSizeWarningLimit: 3000, // Augmenté à 3000 pour supprimer tout avertissement de taille de chunk sur Vercel
   },
 })
