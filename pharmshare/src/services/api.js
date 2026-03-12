@@ -1,3 +1,4 @@
+const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost/Pharmshare/api'
     : 'https://pharmshare.alwaysdata.net/api'; // Votre URL AlwaysData (beaucoup plus stable)
 
