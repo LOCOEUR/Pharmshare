@@ -250,41 +250,40 @@ INSERT INTO `demandes` (`id`, `annonce_id`, `demandeur_id`, `destinataire_id`, `
 
 --
 -- Déclencheurs `demandes`
--- (Désactivés car les requêtes TRIGGER sont interdites sur certains hébergements mutualisés. 
--- La logique a été déplacée dans le code PHP de l'API : api/requests/index.php)
+--
 
--- DELIMITER $$
--- CREATE TRIGGER `apres_demande_inseree` AFTER INSERT ON `demandes` FOR EACH ROW BEGIN
---     -- On met à jour le produit lié à l'annonce
---     UPDATE produits p
---     JOIN annonces a ON p.id = a.produit_id
---     SET p.stock_actuel = p.stock_actuel - NEW.quantite,
---         p.stock_reserve = p.stock_reserve + NEW.quantite
---     WHERE a.id = NEW.annonce_id;
--- END
--- $$
--- DELIMITER ;
--- DELIMITER $$
--- CREATE TRIGGER `maj_stock_selon_statut` AFTER UPDATE ON `demandes` FOR EACH ROW BEGIN
---     -- Si la demande est terminée (échange réussi)
---     IF NEW.statut = 'terminee' AND OLD.statut != 'terminee' THEN
---         UPDATE produits p
---         JOIN annonces a ON p.id = a.produit_id
---         SET p.stock_reserve = p.stock_reserve - NEW.quantite
---         WHERE a.id = NEW.annonce_id;
---         
---     -- Si la demande est annulée ou refusée (on rend le stock)
---     ELSEIF (NEW.statut = 'annulee' OR NEW.statut = 'refusee') 
---            AND OLD.statut = 'en_attente' THEN
---         UPDATE produits p
---         JOIN annonces a ON p.id = a.produit_id
---         SET p.stock_actuel = p.stock_actuel + NEW.quantite,
---             p.stock_reserve = p.stock_reserve - NEW.quantite
---         WHERE a.id = NEW.annonce_id;
---     END IF;
--- END
--- $$
--- DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `apres_demande_inseree` AFTER INSERT ON `demandes` FOR EACH ROW BEGIN
+    -- On met à jour le produit lié à l'annonce
+    UPDATE produits p
+    JOIN annonces a ON p.id = a.produit_id
+    SET p.stock_actuel = p.stock_actuel - NEW.quantite,
+        p.stock_reserve = p.stock_reserve + NEW.quantite
+    WHERE a.id = NEW.annonce_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `maj_stock_selon_statut` AFTER UPDATE ON `demandes` FOR EACH ROW BEGIN
+    -- Si la demande est terminée (échange réussi)
+    IF NEW.statut = 'terminee' AND OLD.statut != 'terminee' THEN
+        UPDATE produits p
+        JOIN annonces a ON p.id = a.produit_id
+        SET p.stock_reserve = p.stock_reserve - NEW.quantite
+        WHERE a.id = NEW.annonce_id;
+        
+    -- Si la demande est annulée ou refusée (on rend le stock)
+    ELSEIF (NEW.statut = 'annulee' OR NEW.statut = 'refusee') 
+           AND OLD.statut = 'en_attente' THEN
+        UPDATE produits p
+        JOIN annonces a ON p.id = a.produit_id
+        SET p.stock_actuel = p.stock_actuel + NEW.quantite,
+            p.stock_reserve = p.stock_reserve - NEW.quantite
+        WHERE a.id = NEW.annonce_id;
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -1576,8 +1575,19 @@ INSERT INTO `users` (`id`, `pharmacie_id`, `nom`, `email`, `mot_de_passe`, `role
 
 -- --------------------------------------------------------
 
--- Views removed for shared hosting compatibility (InfinityFree)
--- Logic migrated to PHP API
+--
+-- Structure de la vue `vue_alertes_stock`
+--
+
+CREATE VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la vue `vue_dashboard`
+--
+
+CREATE VIEW `vue_dashboard`  AS SELECT `p`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `p`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `p`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`date_expiration` <= curdate() + interval 90 day)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `p`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `p`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` `p` ;
 
 
 --
