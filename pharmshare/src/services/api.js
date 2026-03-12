@@ -82,7 +82,7 @@ export async function login(email, password = '') {
         body: JSON.stringify({ email, password }),
     });
     
-    // Sécurité : si res est undefined ou null, on renvoie un objet vide pour éviter le crash
+    // Sécurité : si res est undefined ou null, on renvoie un objet vide
     const safeRes = res || { success: false, error: 'Serveur injoignable' };
     
     if (safeRes.success) {
