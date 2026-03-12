@@ -81,11 +81,15 @@ export async function login(email, password = '') {
         method: 'POST',
         body: JSON.stringify({ email, password }),
     });
-    if (res.success) {
-        setToken(res.data.token);
-        setUser(res.data.user);
+    
+    // Sécurité : si res est undefined ou null, on renvoie un objet vide pour éviter le crash
+    const safeRes = res || { success: false, error: 'Serveur injoignable' };
+    
+    if (safeRes.success) {
+        setToken(safeRes.data.token);
+        setUser(safeRes.data.user);
     }
-    return res;
+    return safeRes;
 }
 
 export async function signup(userData) {
