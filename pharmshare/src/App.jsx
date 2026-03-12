@@ -21,6 +21,19 @@ import { SearchProvider } from './context/SearchContext';
 import { useEffect } from 'react';
 import realtimeService from './services/RealtimeService';
 
+const MobileBlocker = () => (
+  <div className="mobile-only-blocker">
+    <div className="blocker-content">
+      <div className="blocker-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+      </div>
+      <h1>Version Mobile en Arrivée</h1>
+      <p>L'expérience complète PharmShare est optimisée pour PC et Laptop. Nous peaufinons actuellement la version mobile pour vous offrir la meilleure expérience médicale.</p>
+      <div className="blocker-badge">Bientôt disponible</div>
+    </div>
+  </div>
+);
+
 function App() {
   useEffect(() => {
     // Démarrer le service temps réel au chargement
@@ -38,6 +51,7 @@ function App() {
   return (
     <BrowserRouter>
       <SearchProvider>
+        <MobileBlocker />
         <Toaster
           position="top-right"
           toastOptions={{
