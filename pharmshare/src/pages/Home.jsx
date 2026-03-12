@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import './Home.css';
 
 const Home = () => {
+    const navigate = useNavigate();
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
@@ -96,13 +97,13 @@ const Home = () => {
                                 Réduisez le gaspillage, optimisez vos stocks et contribuez à un système de santé plus durable.
                             </p>
                             <div className="hero-cta">
-                                <button className="btn-primary btn-large">
+                                <button className="btn-primary btn-large" onClick={() => navigate('/signup')}>
                                     Rejoignez-nous Maintenant !
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                         <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                 </button>
-                                <button className="btn-secondary btn-large">
+                                <button className="btn-secondary btn-large" onClick={() => window.open('https://wa.me/2250564762911', '_blank')}>
                                     Contactez-nous
                                 </button>
                             </div>
@@ -412,13 +413,13 @@ const Home = () => {
                         <h2>Prêt à Optimiser Vos Stocks ?</h2>
                         <p>Rejoignez plus de 500 pharmacies qui font déjà confiance à PharmShare</p>
                         <div className="cta-buttons">
-                            <button className="btn-primary btn-large">
+                            <button className="btn-primary btn-large" onClick={() => navigate('/signup')}>
                                 Rejoignez-nous Maintenant !
                                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                                     <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
                             </button>
-                            <button className="btn-secondary btn-large">Nous Contacter</button>
+                            <button className="btn-secondary btn-large" onClick={() => window.open('https://wa.me/2250564762911', '_blank')}>Nous Contacter</button>
                         </div>
                     </div>
                 </div>
