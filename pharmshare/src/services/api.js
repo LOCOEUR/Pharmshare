@@ -1,6 +1,5 @@
-const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost/Pharmshare/api'
-    : 'http://phamshare.kesug.com/api'; // Votre URL InfinityFree
+    : 'https://pharmshare.alwaysdata.net/api'; // Votre URL AlwaysData (beaucoup plus stable)
 
 // ============================================================
 // Utilitaires HTTP
