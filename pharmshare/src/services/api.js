@@ -48,7 +48,12 @@ async function apiRequest(endpoint, options = {}) {
             headers,
         });
 
-        const data = await response.json();
+        let data;
+        try {
+            data = await response.json();
+        } catch (e) {
+            throw new Error("Le serveur a renvoyé une réponse invalide (vérifiez la config BDD)");
+        }
 
         if (!response.ok) {
             // Si token expiré, déconnecter
@@ -57,7 +62,7 @@ async function apiRequest(endpoint, options = {}) {
                 window.location.href = '/login';
                 return;
             }
-            throw new Error(data.error || `Erreur ${response.status}`);
+            throw new Error(data?.error || `Erreur ${response.status}`);
         }
 
         return data;
