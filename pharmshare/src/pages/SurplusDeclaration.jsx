@@ -63,6 +63,7 @@ const SurplusDeclaration = () => {
     const validateForm = () => {
         const newErrors = {};
         if (formData.quantity < 0) newErrors.quantity = "La quantité ne peut pas être négative.";
+        if (formData.quantity > 3) newErrors.quantity = "La quantité est limitée à 3 boîtes (dépannage confraternel).";
         if (formData.type === 'vente' && formData.price < 0) newErrors.price = "Le prix ne peut pas être négatif.";
 
         if (formData.expiry) {
@@ -135,7 +136,7 @@ const SurplusDeclaration = () => {
             <div className="surplus-container">
                 <div style={{ marginBottom: '2rem' }}>
                     <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Déclaration de Surplus</h1>
-                    <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0' }}>Mettez en vente ou échangez vos stocks excédentaires avant péremption.</p>
+                    <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0' }}>Proposez en dépannage ou échangez vos stocks excédentaires avant péremption.</p>
                 </div>
 
                 <div className="surplus-info-box">
@@ -150,7 +151,7 @@ const SurplusDeclaration = () => {
                                 onClick={() => setFormData(prev => ({ ...prev, type: 'vente' }))}
                                 style={{ flex: 1 }}
                             >
-                                Je veux céder un surplus
+                                Je propose un dépannage
                             </button>
                             <button
                                 type="button"
@@ -161,10 +162,10 @@ const SurplusDeclaration = () => {
                                 Je recherche un produit
                             </button>
                         </div>
-                        <h4>{formData.type === 'vente' ? 'Pourquoi déclarer un surplus ?' : 'Pourquoi déclarer un besoin ?'}</h4>
+                        <h4>{formData.type === 'vente' ? 'Pourquoi proposer un dépannage ?' : 'Pourquoi déclarer un besoin ?'}</h4>
                         <p>
                             {formData.type === 'vente'
-                                ? 'Permet aux autres pharmacies de vous racheter vos stocks proches de la péremption pour éviter les pertes.'
+                                ? 'Permet aux autres pharmacies de récupérer vos stocks (cession à prix grossiste ou échange) pour éviter les pertes.'
                                 : 'Alertez le réseau de vos ruptures pour que vos confrères puissent vous dépanner rapidement.'}
                         </p>
                     </div>
@@ -211,7 +212,9 @@ const SurplusDeclaration = () => {
                                 name="quantity"
                                 value={formData.quantity}
                                 onChange={handleFormChange}
-                                placeholder="ex: 50"
+                                placeholder="ex: 3 (max 3)"
+                                min="1"
+                                max="3"
                                 required
                             />
                             {errors.quantity && <span style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '4px' }}>{errors.quantity}</span>}
@@ -245,7 +248,7 @@ const SurplusDeclaration = () => {
                         </div>
                         {formData.type === 'vente' && (
                             <div className="form-group">
-                                <label className="form-label">Prix de Cession (FCFA)</label>
+                                <label className="form-label">Valeur de Cession (Prix Grossiste FCFA)</label>
                                 <input
                                     type="number"
                                     className="form-input"
@@ -278,7 +281,7 @@ const SurplusDeclaration = () => {
                         disabled={formSubmitted || (!selectedProduct && !searchQuery.trim())}
                         style={{ opacity: (formSubmitted || (!selectedProduct && !searchQuery.trim())) ? 0.7 : 1, backgroundColor: formData.type === 'recherche' ? '#3b82f6' : 'var(--primary)' }}
                     >
-                        {formSubmitted ? 'Publication...' : (formData.type === 'vente' ? 'Publier le Surplus' : 'Publier le Besoin')}
+                        {formSubmitted ? 'Publication...' : (formData.type === 'vente' ? 'Publier le Dépannage' : 'Publier le Besoin')}
                     </button>
                 </form>
             </div>

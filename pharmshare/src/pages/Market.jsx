@@ -26,7 +26,7 @@ const Market = () => {
                 type: a.type_annonce === 'vente' ? 'sell' : 'request',
                 name: a.titre || a.produit_nom || 'Produit',
                 quantity: a.quantite,
-                price: a.prix_unitaire ? `${new Intl.NumberFormat('fr-FR').format(a.prix_unitaire)} F` : 'Négociable',
+                price: a.prix_unitaire ? `${new Intl.NumberFormat('fr-FR').format(a.prix_unitaire)} F (Prix Grossiste)` : 'Échange / Négociable',
                 expiry: a.date_expiration ? new Date(a.date_expiration).toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' }) : 'N/A',
                 pharmacy: a.pharmacie_nom,
                 location: a.quartier || a.ville,
@@ -73,7 +73,7 @@ const Market = () => {
     };
 
     const handleOrder = async (item) => {
-        if (!window.confirm(`Confirmer la commande de ${item.quantity} boîtes de ${item.name} ?`)) return;
+        if (!window.confirm(`Confirmer la demande de dépannage pour ${item.quantity} boîtes de ${item.name} ?`)) return;
 
         try {
             await createRequest({
@@ -83,7 +83,7 @@ const Market = () => {
                 quantite: item.quantity,
                 produit_nom: item.name
             });
-            toast.success('Commande envoyée avec succès !');
+            toast.success('Demande de dépannage envoyée avec succès !');
         } catch (err) {
             toast.error("Erreur lors de la commande : " + err.message);
         }
@@ -126,8 +126,8 @@ const Market = () => {
             <div className="market-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <div>
-                        <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Bourse d'Échange</h1>
-                        <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0' }}>Trouvez des médicaments en rupture ou écoulez vos surplus.</p>
+                        <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Dépannage Confraternel</h1>
+                        <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0' }}>Trouvez des médicaments en urgence ou dépannez vos confrères.</p>
                     </div>
                     <button
                         className="btn btn-primary"
@@ -150,7 +150,7 @@ const Market = () => {
                         onClick={() => setActiveFilter('sell')}
                     >
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#34d399' }}></span>
-                        Offres
+                        Dépannages
                     </button>
                     <button
                         className={`market-filter-btn ${activeFilter === 'request' ? 'active' : ''}`}
@@ -176,7 +176,7 @@ const Market = () => {
                         <div className="market-card-header">
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                                 <span className={`market-badge ${item.type === 'sell' ? 'badge-sell' : 'badge-request'}`}>
-                                    {item.type === 'sell' ? 'Offre de Vente' : 'Recherche Urgent'}
+                                    {item.type === 'sell' ? 'Dépannage / Cession' : 'Recherche Urgent'}
                                 </span>
                                 {item.statut === 'en_negociation' && (
                                     <span className="market-badge badge-negotiation">🤝 Négociation</span>
@@ -269,7 +269,7 @@ const Market = () => {
                                     </button>
                                     <button className="btn-contact" style={{ flex: 1, backgroundColor: '#10b981' }} onClick={() => handleOrder(item)}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                                        Commander
+                                        Demander dépannage
                                     </button>
                                 </div>
                             )}

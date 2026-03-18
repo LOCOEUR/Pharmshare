@@ -33,7 +33,7 @@ const Requests = () => {
                 item: d.produit_nom,
                 quantity: d.quantite,
                 price: d.prix_unitaire || 0,
-                type: d.type_demande === 'echange' ? `Échange${d.echange_contre ? ` contre ${d.echange_contre}` : ''}` : 'Achat',
+                type: d.type_demande === 'echange' ? `Échange${d.echange_contre ? ` contre ${d.echange_contre}` : ''}` : 'Dépannage',
                 date: new Date(d.date_creation).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
                 dateRaw: d.date_creation,
                 status: d.statut === 'en_attente' ? 'Pending' : d.statut === 'acceptee' ? 'Approved' : d.statut === 'refusee' ? 'Rejected' : d.statut === 'terminee' ? 'Approved' : 'Pending',
@@ -450,7 +450,7 @@ const Requests = () => {
             <div style={{ marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <div>
-                        <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Demandes & Commandes</h1>
+                        <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Dépannages & Demandes</h1>
                         <p style={{ color: 'var(--text-secondary)', margin: '0.5rem 0 0 0' }}>Gérez vos interactions avec les autres pharmacies.</p>
                     </div>
                 </div>
@@ -462,7 +462,7 @@ const Requests = () => {
                         onClick={() => setActiveTab('received')}
                     >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            Demandes Reçues (Achats/Échanges)
+                            Demandes Reçues (Dépannages/Échanges)
                             {pendingCount > 0 && (
                                 <span style={{ backgroundColor: 'var(--primary)', color: '#022c22', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>
                                     {pendingCount}
