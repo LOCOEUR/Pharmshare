@@ -14,9 +14,9 @@ const SurplusDeclaration = () => {
         quantity: '',
         expiry: '',
         batch: '',
-        condition: 'new',
         price: '',
-        notes: ''
+        notes: '',
+        legalConsent: false
     });
 
     const [formSubmitted, setFormSubmitted] = useState(false);
@@ -54,8 +54,8 @@ const SurplusDeclaration = () => {
     };
 
     const handleFormChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
 
     const [errors, setErrors] = useState({});
@@ -73,6 +73,9 @@ const SurplusDeclaration = () => {
             if (expiryDate < today) {
                 newErrors.expiry = "La date d'expiration ne peut pas être passée.";
             }
+        }
+        if (!formData.legalConsent) {
+            newErrors.legalConsent = "Vous devez accepter les conditions légales de cession confraternelle.";
         }
         return newErrors;
     };
@@ -117,7 +120,8 @@ const SurplusDeclaration = () => {
                 batch: '',
                 condition: 'new',
                 price: '',
-                notes: ''
+                notes: '',
+                legalConsent: false
             });
             setErrors({});
             setSelectedProduct(null);
@@ -273,6 +277,22 @@ const SurplusDeclaration = () => {
                             onChange={handleFormChange}
                             placeholder="ex: Boîtes neuves, scellées. À récupérer sur place."
                         ></textarea>
+                    </div>
+
+                    <div className="form-group" style={{ backgroundColor: 'rgba(52, 211, 153, 0.1)', padding: '1rem', borderRadius: '0.5rem', border: '1px solid rgba(52, 211, 153, 0.3)', marginBottom: '1.5rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                            <input
+                                type="checkbox"
+                                name="legalConsent"
+                                checked={formData.legalConsent}
+                                onChange={handleFormChange}
+                                style={{ marginTop: '0.2rem', accentColor: 'var(--primary)' }}
+                            />
+                            <span>
+                                <strong style={{color: 'var(--text-primary)'}}>Engagement Déontologique :</strong> Je certifie que cette transaction relève du dépannage confraternel exceptionnel. Je m'engage à respecter les bonnes pratiques de conservation jusqu'au transfert au confrère. (Conformité AIRP)
+                            </span>
+                        </label>
+                        {errors.legalConsent && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '4px', marginLeft: '1.5rem' }}>{errors.legalConsent}</div>}
                     </div>
 
                     <button

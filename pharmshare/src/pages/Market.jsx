@@ -73,7 +73,7 @@ const Market = () => {
     };
 
     const handleOrder = async (item) => {
-        if (!window.confirm(`Confirmer la demande de dépannage pour ${item.quantity} boîtes de ${item.name} ?`)) return;
+        if (!window.confirm(`MENTION LÉGALE :\nEn confirmant, vous vous engagez à assurer le transport de ces ${item.quantity} boîtes de ${item.name} dans le strict respect de la chaîne du froid et sous la responsabilité de votre pharmacie.\n\nConfirmer la demande de dépannage ?`)) return;
 
         try {
             await createRequest({

@@ -330,6 +330,10 @@ const Chat = () => {
                                 </div>
                             </div>
 
+                            <div style={{ backgroundColor: '#fffbeb', color: '#b45309', padding: '0.6rem', fontSize: '0.8rem', textAlign: 'center', borderBottom: '1px solid #fde68a' }}>
+                                ⚠️ <strong>Rappel Déontologique & RGPD :</strong> Il est strictement interdit d'échanger des données de patients (noms, photos d'ordonnances) sur ce réseau.
+                            </div>
+
                             <div className="chat-messages">
                                 {messages.map(msg => (
                                     <div key={msg.id} className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}>

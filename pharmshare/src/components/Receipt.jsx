@@ -128,6 +128,10 @@ const Receipt = ({ data }) => {
                         </div>
                     </div>
                 </div>
+
+                <div style={{ marginTop: '2rem', fontSize: '0.7rem', color: '#666', borderTop: '1px solid #eee', paddingTop: '1rem', textAlign: 'justify' }}>
+                    <strong>Mention Légale (Conformité AIRP) :</strong> Ce document atteste d'un dépannage confraternel exceptionnel, sans marge commerciale (cession à prix grossiste ou échange), conçu pour répondre aux besoins de santé publique. Conformément aux bonnes pratiques de distribution, le transport physique du médicament et le strict respect de la chaîne du froid (le cas échéant) engagent la responsabilité exclusive du pharmacien réceptionnaire ou de son mandataire. La plateforme logicielle <em>PharmShare</em> décline toute responsabilité liée au transport, au courtage, ou à l'altération qualitative du produit post-cession.
+                </div>
             </div>
 
             <div className="receipt-actions no-print">
