@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getUser, getDashboard } from '../services/api';
+import { getUser, getNotificationCount } from '../services/api';
 import { useSearch } from '../context/SearchContext';
 import { useState, useEffect } from 'react';
 import realtimeService from '../services/RealtimeService';
@@ -16,28 +16,28 @@ const Layout = ({ children, hideSidebar = false }) => {
     useEffect(() => {
         if (!userId) return;
 
-        const loadDashboardStats = async () => {
+        const loadNotifCount = async () => {
             try {
-                const data = await getDashboard();
-                setNotifCount(data.stats.notifs_non_lues || 0);
+                const count = await getNotificationCount();
+                setNotifCount(count);
             } catch (err) {
                 console.error('Error loading notif count:', err);
             }
         };
 
         // Chargement initial
-        loadDashboardStats();
+        loadNotifCount();
 
         // Abonnement au temps réel
         const unsubscribe = realtimeService.subscribe(({ type }) => {
             if (type === 'notification' || type === 'message') {
                 // Si on reçoit une notification ou message, on rafraîchit le compteur
-                loadDashboardStats();
+                loadNotifCount();
             }
         });
 
         // Écouter un événement global pour forcer le rafraîchissement
-        const handleRefreshStats = () => loadDashboardStats();
+        const handleRefreshStats = () => loadNotifCount();
         window.addEventListener('refresh-stats', handleRefreshStats);
 
         return () => {
@@ -99,6 +99,10 @@ const Layout = ({ children, hideSidebar = false }) => {
                         <Link to="/requests" className={isActive('/requests')}>
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             Demandes
+                        </Link>
+                        <Link to="/balance" className={isActive('/balance')}>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            Balance Dettes
                         </Link>
 
                         {['admin', 'pharmacien'].includes(user?.role) && (

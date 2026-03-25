@@ -60,7 +60,7 @@ const Dashboard = () => {
                     {/* Salutation et actions rapides */}
                     <div className="greeting-section">
                         <div>
-                            <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Bonjour, {pharmacie.responsable || user?.nom || 'Dr.'}</h1>
+                            <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 800 }}>Bonjour, {user?.nom || pharmacie.responsable || 'Dr.'}</h1>
                             <p style={{ color: '#94a3b8', margin: '0.5rem 0 0 0' }}>Voici votre aperçu quotidien des stocks et échanges.</p>
                         </div>
                         <div>
@@ -105,15 +105,21 @@ const Dashboard = () => {
                             </div>
                         </div>
 
+                        <div className="card" style={{ borderLeft: '4px solid #f87171' }}>
+                            <span className="card-label">Dettes Confraternelles</span>
+                            <span className="card-value" style={{ color: '#f87171' }}>{formatMoney(stats.dettes)}</span>
+                            <span className="card-trend" style={{ color: '#94a3b8' }}>À compenser en produits</span>
+                            <div className="card-icon-top" style={{ backgroundColor: 'rgba(248, 113, 113, 0.1)' }}>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
+                            </div>
+                        </div>
+
                         <div className="card" style={{ borderLeft: '4px solid #10B981' }}>
-                            <span className="card-label">ROI / Pertes Évitées</span>
-                            <span className="card-value" style={{ color: '#10B981' }}>{formatMoney(stats.economies)}</span>
-                            <span className="card-trend" style={{ color: '#10B981', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                Capital récupéré
-                            </span>
+                            <span className="card-label">Créances (On vous doit)</span>
+                            <span className="card-value" style={{ color: '#10B981' }}>{formatMoney(stats.creances)}</span>
+                            <span className="card-trend" style={{ color: '#10B981' }}>Valeur en votre faveur</span>
                             <div className="card-icon-top" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
                             </div>
                         </div>
                     </div>

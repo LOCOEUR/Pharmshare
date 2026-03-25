@@ -34,15 +34,26 @@ $stmt = $db->prepare("SELECT COUNT(*) as count FROM demandes WHERE destinataire_
 $stmt->execute(['id' => $pharmacieId]);
 $demandesEnAttente = $stmt->fetch()['count'];
 
-// Économies (total des ventes réussies)
+// Balance Confraternelle (Dettes et Créances produits)
+// Créances : produits que j'ai fournis et que les confrères me doivent
 $stmt = $db->prepare("
-    SELECT COALESCE(SUM(a.prix_unitaire * d.quantite), 0) as economies
+    SELECT COALESCE(SUM(a.prix_unitaire * d.quantite), 0) as creances
     FROM demandes d 
     JOIN annonces a ON d.annonce_id = a.id 
-    WHERE (d.demandeur_id = :id OR d.destinataire_id = :id2) AND d.statut = 'terminee'
+    WHERE d.destinataire_id = :id AND d.statut = 'terminee'
 ");
-$stmt->execute(['id' => $pharmacieId, 'id2' => $pharmacieId]);
-$economies = $stmt->fetch()['economies'];
+$stmt->execute(['id' => $pharmacieId]);
+$creances = $stmt->fetch()['creances'];
+
+// Dettes : produits que j'ai reçus et que je dois rendre/compenser
+$stmt = $db->prepare("
+    SELECT COALESCE(SUM(a.prix_unitaire * d.quantite), 0) as dettes
+    FROM demandes d 
+    JOIN annonces a ON d.annonce_id = a.id 
+    WHERE d.demandeur_id = :id AND d.statut = 'terminee'
+");
+$stmt->execute(['id' => $pharmacieId]);
+$dettes = $stmt->fetch()['dettes'];
 
 // Demandes récentes
 $stmt = $db->prepare("
@@ -91,7 +102,8 @@ successResponse([
     "stats" => [
         "annonces_actives" => (int)$annoncesActives,
         "demandes_en_attente" => (int)$demandesEnAttente,
-        "economies" => (float)$economies,
+        "creances" => (float)$creances,
+        "dettes" => (float)$dettes,
         "total_produits" => (int)($stats['total_produits'] ?? 0),
         "produits_en_alerte" => (int)($stats['produits_en_alerte'] ?? 0),
         "expirations_proches" => (int)($stats['expirations_proches'] ?? 0),

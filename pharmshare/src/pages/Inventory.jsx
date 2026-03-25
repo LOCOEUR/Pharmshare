@@ -9,7 +9,7 @@ import PdfService from '../services/PdfService';
 import ProductImage from '../components/ProductImage';
 
 const Inventory = () => {
-    const { searchQuery } = useSearch();
+    const { debouncedSearchQuery } = useSearch();
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -32,7 +32,7 @@ const Inventory = () => {
 
     const loadInventory = useCallback(async () => {
         try {
-            const data = await getInventory(searchQuery, activeFilter);
+            const data = await getInventory(debouncedSearchQuery, activeFilter);
             const mapped = data.produits.map(p => ({
                 id: p.id,
                 name: p.nom,
@@ -51,7 +51,7 @@ const Inventory = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, activeFilter]);
+    }, [debouncedSearchQuery, activeFilter]);
 
     useEffect(() => {
         loadInventory();

@@ -36,7 +36,7 @@ const Requests = () => {
                 type: d.type_demande === 'echange' ? `Échange${d.echange_contre ? ` contre ${d.echange_contre}` : ''}` : 'Dépannage',
                 date: new Date(d.date_creation).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
                 dateRaw: d.date_creation,
-                status: d.statut === 'en_attente' ? 'Pending' : d.statut === 'acceptee' ? 'Approved' : d.statut === 'refusee' ? 'Rejected' : d.statut === 'terminee' ? 'Approved' : 'Pending',
+                status: ['acceptee', 'terminee', 'compense'].includes(d.statut) ? 'Approved' : d.statut === 'refusee' ? 'Rejected' : 'Pending',
                 rawStatus: d.statut,
                 paymentStatus: d.statut_paiement || 'non_paye',
                 // Nouvelles infos pour le bon

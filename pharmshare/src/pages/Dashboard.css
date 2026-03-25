@@ -205,10 +205,11 @@ body.light-mode .dashboard-container .custom-table th {
 /* ===== Main Content ===== */
 .dashboard-container .main-content {
     flex: 1;
-    margin-left: var(--sidebar-width);
+    margin-left: var(--sidebar-width) !important;
     padding: 2rem;
     box-sizing: border-box;
     transition: margin-left 0.3s ease;
+    overflow-x: hidden;
 }
 
 .dashboard-container.no-sidebar .main-content {

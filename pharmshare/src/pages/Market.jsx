@@ -12,21 +12,21 @@ const Market = () => {
     const navigate = useNavigate();
     const currentUser = getUser();
     const currentPharmacyId = currentUser?.pharmacie_id;
-    const { searchQuery } = useSearch();
+    const { debouncedSearchQuery } = useSearch();
     const [activeFilter, setActiveFilter] = useState('all'); // tout, vente, demande, mes annonces
     const [marketItems, setMarketItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const loadMarket = useCallback(async () => {
         try {
-            const data = await getMarketItems(searchQuery, activeFilter);
+            const data = await getMarketItems(debouncedSearchQuery, activeFilter);
             // Mapper les données API vers le format du composant
             const mapped = data.map(a => ({
                 id: a.id,
                 type: a.type_annonce === 'vente' ? 'sell' : 'request',
                 name: a.titre || a.produit_nom || 'Produit',
                 quantity: a.quantite,
-                price: a.prix_unitaire ? `${new Intl.NumberFormat('fr-FR').format(a.prix_unitaire)} F (Prix Grossiste)` : 'Échange / Négociable',
+                price: a.prix_unitaire ? `${new Intl.NumberFormat('fr-FR').format(a.prix_unitaire)} F (Compensation indicative)` : 'Échange / Emprunt',
                 expiry: a.date_expiration ? new Date(a.date_expiration).toLocaleDateString('fr-FR', { month: '2-digit', year: 'numeric' }) : 'N/A',
                 pharmacy: a.pharmacie_nom,
                 location: a.quartier || a.ville,
@@ -44,7 +44,7 @@ const Market = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, activeFilter]);
+    }, [debouncedSearchQuery, activeFilter]);
 
     useEffect(() => {
         loadMarket();
@@ -65,7 +65,7 @@ const Market = () => {
         if (!window.confirm("Marquer cette annonce comme 'Affaire Conclue' ? Elle ne sera plus proposée aux autres.")) return;
         try {
             await updateAnnonce(id, { statut: 'vendue' });
-            toast.success("Annonce marquée comme conclue");
+            toast.success("Dépannage marqué comme achevé");
             loadMarket();
         } catch (err) {
             toast.error("Erreur: " + err.message);
@@ -79,7 +79,7 @@ const Market = () => {
             await createRequest({
                 annonce_id: item.id,
                 destinataire_id: item.pharmacie_id,
-                type_demande: 'achat',
+                type_demande: 'emprunt',
                 quantite: item.quantity,
                 produit_nom: item.name
             });
@@ -181,9 +181,9 @@ const Market = () => {
                                 {item.statut === 'en_negociation' && (
                                     <span className="market-badge badge-negotiation">🤝 Négociation</span>
                                 )}
-                                {item.statut === 'vendue' && (
-                                    <span className="market-badge badge-sold">✅ Conclu</span>
-                                )}
+                                 {item.statut === 'vendue' && (
+                                    <span className="market-badge badge-sold">✅ Dépanné</span>
+                                 )}
                             </div>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.posted}</span>
                         </div>
@@ -214,7 +214,7 @@ const Market = () => {
                                 <span className="market-info-value">{item.quantity} boîtes</span>
                             </div>
                             <div className="market-info-row">
-                                <span className="market-info-label">Prix unitaire :</span>
+                                <span className="market-info-label">Valeur compensation :</span>
                                 <span className="market-info-value" style={{ color: 'var(--primary)', fontSize: '1.1rem' }}>{item.price}</span>
                             </div>
                             <div className="market-info-row">
@@ -243,8 +243,8 @@ const Market = () => {
                             {(activeFilter === 'mine' || String(item.pharmacie_id) === String(currentPharmacyId)) ? (
                                 <div style={{ textAlign: 'center', width: '100%', padding: '0.5rem' }}>
                                     {item.statut === 'vendue' ? (
-                                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                                            ✓ Affaire conclue
+                                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                            ✓ Dépannage effectué
                                         </div>
                                     ) : (
                                         <button
@@ -258,8 +258,8 @@ const Market = () => {
                                     )}
                                 </div>
                             ) : item.statut === 'vendue' ? (
-                                <button className="btn-contact" disabled style={{ opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#475569' }}>
-                                    Indisponible (Vendu)
+                                 <button className="btn-contact" disabled style={{ opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#475569' }}>
+                                    Indisponible (Dépanné)
                                 </button>
                             ) : (
                                 <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>

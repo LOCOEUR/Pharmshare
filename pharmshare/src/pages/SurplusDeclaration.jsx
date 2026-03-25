@@ -252,7 +252,7 @@ const SurplusDeclaration = () => {
                         </div>
                         {formData.type === 'vente' && (
                             <div className="form-group">
-                                <label className="form-label">Valeur de Cession (Prix Grossiste FCFA)</label>
+                                <label className="form-label">Valeur de Compensation (Prix Grossiste FCFA)</label>
                                 <input
                                     type="number"
                                     className="form-input"

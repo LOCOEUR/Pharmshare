@@ -126,8 +126,8 @@ switch ($_SERVER['REQUEST_METHOD']) {
         ");
         $stmt->execute([
             'id' => (int)$data['destinataire_id'],
-            'titre' => 'Nouvelle demande reçue',
-            'msg' => "$senderName souhaite acheter {$data['quantite']} boîtes de {$data['produit_nom']}"
+            'titre' => 'Nouvelle demande de dépannage',
+            'msg' => "$senderName souhaite emprunter {$data['quantite']} boîtes de {$data['produit_nom']}"
         ]);
 
         logAudit("Nouvelle demande", ["demande_id" => $demandeId, "destinataire_id" => (int)$data['destinataire_id'], "produit_nom" => $data['produit_nom']]);

@@ -120,6 +120,19 @@ export async function getDashboard() {
     return res.data;
 }
 
+export async function getBalance() {
+    const res = await apiRequest('/dashboard/balance.php');
+    return res.data;
+}
+
+export async function updateBalance(id) {
+    const res = await apiRequest('/dashboard/balance.php', {
+        method: 'PUT',
+        body: JSON.stringify({ id }),
+    });
+    return res;
+}
+
 export async function getMatching() {
     const res = await apiRequest('/market/matching.php');
     return res.data;
@@ -268,6 +281,11 @@ export async function getNotifications(filter = 'all') {
     const params = new URLSearchParams({ filter });
     const res = await apiRequest(`/notifications/index.php?${params}`);
     return res.data;
+}
+
+export async function getNotificationCount() {
+    const res = await apiRequest('/notifications/count.php');
+    return res.data.unread_count;
 }
 
 export async function markNotificationRead(id) {

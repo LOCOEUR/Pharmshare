@@ -14,6 +14,7 @@ import Chat from './pages/Chat';
 import Notifications from './pages/Notifications';
 import Help from './pages/Help';
 import Logout from './pages/Logout';
+import Balance from './pages/Balance';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import { SearchProvider } from './context/SearchContext';
@@ -86,6 +87,7 @@ function App() {
           <Route path="/surplus-declaration" element={<ProtectedRoute><Layout><SurplusDeclaration /></Layout></ProtectedRoute>} />
           <Route path="/chat" element={<ProtectedRoute><Layout><Chat /></Layout></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
+          <Route path="/balance" element={<ProtectedRoute><Layout><Balance /></Layout></ProtectedRoute>} />
           <Route path="/help" element={<ProtectedRoute><Layout><Help /></Layout></ProtectedRoute>} />
         </Routes>
       </SearchProvider>

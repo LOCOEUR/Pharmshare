@@ -84,12 +84,40 @@ const Chat = () => {
         // Abonnement au temps réel
         const unsubscribe = realtimeService.subscribe(({ type, data }) => {
             if (type === 'message') {
-                // Si le message appartient à la conversation active, on recharge les messages
-                if (activeChat && parseInt(data.conversation_id) === parseInt(activeChat)) {
-                    loadMessages(activeChat);
+                const isCorrectChat = activeChat && parseInt(data.conversation_id) === parseInt(activeChat);
+                
+                if (isCorrectChat) {
+                    // Ajouter le message localement si c'est la bonne conv
+                    const newMessage = {
+                        id: data.id,
+                        text: data.contenu,
+                        sender: parseInt(data.expediteur_id) === parseInt(currentPharmacyId) ? 'me' : 'them',
+                        time: new Date(data.date_envoi).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        fichierUrl: data.fichier_url || null,
+                        fichierType: data.fichier_type || null,
+                        lu: parseInt(data.lu) === 1
+                    };
+                    
+                    setMessages(prev => {
+                        // Éviter les doublons (si on a déjà envoyé le message de manière optimiste)
+                        if (prev.some(m => m.id === newMessage.id)) return prev;
+                        // Supprimer le message temporaire s'il existe
+                        return [...prev.filter(m => !String(m.id).startsWith('temp')), newMessage];
+                    });
                 }
-                // Dans tous les cas, on recharge les conversations pour mettre à jour la liste (aperçu, badges)
-                loadConversations();
+
+                // Mettre à jour la liste des conversations (dernier message et badge)
+                setConversations(prev => prev.map(conv => {
+                    if (parseInt(conv.id) === parseInt(data.conversation_id)) {
+                        return {
+                            ...conv,
+                            lastMessage: data.contenu,
+                            time: new Date(data.date_envoi).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            unread: isCorrectChat ? conv.unread : conv.unread + 1
+                        };
+                    }
+                    return conv;
+                }));
             }
         });
 
@@ -145,8 +173,24 @@ const Chat = () => {
                 sending: true  // en cours d'envoi
             }]);
             try {
-                await sendMessage(textToSend, activeChat, partnerId);
-                loadMessages(activeChat);
+                const res = await sendMessage(textToSend, activeChat, partnerId);
+                // Mettre à jour l'ID temporaire par l'ID réel
+                if (res.data && res.data.message_id) {
+                    setMessages(prev => prev.map(m => m.id === tempId ? { ...m, id: res.data.message_id, sending: false } : m));
+                    
+                    // Mettre à jour aussi la liste des convs
+                    const convId = activeChat || res.data.conversation_id;
+                    if (!activeChat) setActiveChat(convId);
+                    
+                    setConversations(prev => prev.map(c => {
+                        if (parseInt(c.id) === parseInt(convId)) {
+                            return { ...c, lastMessage: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+                        }
+                        return c;
+                    }));
+                } else {
+                    loadMessages(activeChat);
+                }
             } catch (err) {
                 toast.error('Erreur envoi message: ' + err.message);
                 setMessages(prev => prev.filter(m => m.id !== tempId));

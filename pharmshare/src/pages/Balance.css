@@ -1,0 +1,156 @@
+/* Style inspiré du "Orders History" pour les tables de balance */
+.balance-history-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.balance-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Inter', sans-serif;
+}
+
+.balance-table thead {
+    background-color: #0f172a; /* Bleu très foncé comme l'image */
+}
+
+.balance-table th {
+    color: #ffffff;
+    text-align: left;
+    padding: 1rem 1.5rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border: none;
+}
+
+.balance-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    font-size: 0.875rem;
+    vertical-align: middle;
+}
+
+.balance-table tr:last-child td {
+    border-bottom: none;
+}
+
+.balance-table tr:hover {
+    background-color: #f8fafc; /* Effet hover subtil */
+}
+
+/* Identifiant avec # comme sur l'image */
+.id-link {
+    color: #ef4444; /* Rouge/orange pour les ID */
+    text-decoration: none;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.id-link:hover {
+    text-decoration: underline;
+}
+
+/* Badges de statut "Pill" */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-pill.completed {
+    background-color: #ecfdf5;
+    color: #10b981;
+}
+
+.status-pill.completed::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background-color: #10b981;
+    border-radius: 50%;
+}
+
+.status-pill.on-hold {
+    background-color: #fffbeb;
+    color: #f59e0b;
+}
+
+.status-pill.on-hold::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    background-color: #f59e0b;
+    border-radius: 50%;
+}
+
+/* Zone pagination en bas */
+.table-footer-info {
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fcfcfc;
+    border-top: 1px solid #f1f5f9;
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.pagination-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+.page-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    background: white;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #1e293b;
+    transition: all 0.2s;
+}
+
+.page-btn.active {
+    background-color: #0f172a;
+    color: white;
+    border-color: #0f172a;
+}
+
+.page-btn:hover:not(.active) {
+    background-color: #f8fafc;
+}
+
+/* Mode sombre spécifique si besoin */
+body:not(.light-mode) .balance-history-card {
+    background: #162623;
+    border-color: #334b45;
+}
+body:not(.light-mode) .balance-table td {
+    color: #f8fafc;
+    border-bottom-color: #334b45;
+}
+body:not(.light-mode) .balance-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+body:not(.light-mode) .table-footer-info {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-top-color: #334b45;
+}
