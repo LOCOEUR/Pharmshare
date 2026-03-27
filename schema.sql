@@ -3,13 +3,18 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mer. 25 mars 2026 à 14:13
+-- Généré le : mer. 25 mars 2026 à 14:41
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
+
+SET FOREIGN_KEY_CHECKS = 0;
+DROP TABLE IF EXISTS `annonces`, `audit_logs`, `conversations`, `demandes`, `messages`, `mouvements_stock`, `notifications`, `paiements`, `parametres`, `pharmacies`, `produits`, `rapports`, `users`;
+DROP VIEW IF EXISTS `vue_alertes_stock`, `vue_dashboard`;
+SET FOREIGN_KEY_CHECKS = 1;
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -192,7 +197,7 @@ CREATE TABLE `demandes` (
   `type_demande` enum('achat','echange') DEFAULT 'achat',
   `echange_contre` varchar(255) DEFAULT NULL,
   `message` text DEFAULT NULL,
-  `statut` enum('en_attente','acceptee','refusee','annulee','terminee') DEFAULT 'en_attente',
+  `statut` enum('en_attente','acceptee','refusee','annulee','terminee','compense','') DEFAULT 'en_attente',
   `statut_paiement` varchar(50) DEFAULT 'non_paye',
   `motif_refus` text DEFAULT NULL,
   `date_creation` datetime DEFAULT current_timestamp(),
@@ -1425,8 +1430,7 @@ CREATE TABLE `parametres` (
 --
 
 INSERT INTO `parametres` (`id`, `pharmacie_id`, `theme`, `langue`, `notif_email`, `notif_stock`, `notif_demandes`, `notif_messages`, `seuil_alerte_jours`, `date_modification`) VALUES
-(1, 1, 'dark', 'fr', 1, 1, 1, 1, 90, '2026-02-13 11:31:01'),
-(2, 7, 'dark', 'fr', 1, 1, 1, 1, 90, '2026-02-19 08:57:02');
+(1, 1, 'dark', 'fr', 1, 1, 1, 1, 90, '2026-02-13 11:31:01');
 
 -- --------------------------------------------------------
 
@@ -1645,7 +1649,7 @@ CREATE TABLE `vue_dashboard` (
 --
 DROP TABLE IF EXISTS `vue_alertes_stock`;
 
-CREATE VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
 
 -- --------------------------------------------------------
 
@@ -1654,7 +1658,7 @@ CREATE VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`,
 --
 DROP TABLE IF EXISTS `vue_dashboard`;
 
-CREATE VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
 
 --
 -- Index pour les tables déchargées
@@ -1935,8 +1939,7 @@ ALTER TABLE `parametres`
 -- Contraintes pour la table `produits`
 --
 ALTER TABLE `produits`
-  ADD CONSTRAINT `produits_ibfk_1` FOREIGN KEY (`pharmacie_id`) REFERENCES `pharmacies` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `produits_ibfk_2` FOREIGN KEY (`categorie_id`) REFERENCES `categories_produits` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `produits_ibfk_1` FOREIGN KEY (`pharmacie_id`) REFERENCES `pharmacies` (`id`) ON DELETE CASCADE;
 
 --
 -- Contraintes pour la table `rapports`
