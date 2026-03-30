@@ -35,19 +35,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 // 1. Ce que JE DOIS rendre (Mes Dettes) : Demandeur = Moi
 $stmt = $db->prepare("
     SELECT d.id, d.produit_nom, d.quantite, d.date_creation, d.statut, d.statut_paiement,
-           COALESCE(a.prix_unitaire, (
-               SELECT prix_unitaire FROM annonces 
-               WHERE produit_id = (SELECT produit_id FROM annonces WHERE id = d.annonce_id)
-               LIMIT 1
-           ), 0) as valeur_unitaire,
-           COALESCE(a.prix_unitaire * d.quantite, (SELECT montant FROM paiements WHERE demande_id = d.id AND statut = 'reussi' LIMIT 1), 0) as total_valeur,
-           ph.nom as partenaire_nom, ph.telephone as partenaire_telephone,
-           ph.adresse as partenaire_adresse, ph.ville as partenaire_ville
+           COALESCE(MAX(a.prix_unitaire), 0) as valeur_unitaire,
+           COALESCE(MAX(a.prix_unitaire) * d.quantite, MAX(p.montant), 0) as total_valeur,
+           MAX(ph.nom) as partenaire_nom, MAX(ph.telephone) as partenaire_telephone,
+           MAX(ph.adresse) as partenaire_adresse, MAX(ph.ville) as partenaire_ville
     FROM demandes d
     JOIN pharmacies ph ON d.destinataire_id = ph.id
     LEFT JOIN annonces a ON d.annonce_id = a.id
+    LEFT JOIN paiements p ON p.demande_id = d.id AND p.statut = 'reussi'
     WHERE d.demandeur_id = :id 
       AND d.statut NOT IN ('en_attente', 'annulee', 'refusee')
+    GROUP BY d.id, d.produit_nom, d.quantite, d.date_creation, d.statut, d.statut_paiement
     ORDER BY d.date_creation DESC
 ");
 $stmt->execute(['id' => $pharmacieId]);
@@ -56,19 +54,17 @@ $dettes = $stmt->fetchAll();
 // 2. Ce qu'ON ME DOIT (Mes Creances) : Destinataire = Moi
 $stmt = $db->prepare("
     SELECT d.id, d.produit_nom, d.quantite, d.date_creation, d.statut, d.statut_paiement,
-           COALESCE(a.prix_unitaire, (
-               SELECT prix_unitaire FROM annonces 
-               WHERE produit_id = (SELECT produit_id FROM annonces WHERE id = d.annonce_id)
-               LIMIT 1
-           ), 0) as valeur_unitaire,
-           COALESCE(a.prix_unitaire * d.quantite, (SELECT montant FROM paiements WHERE demande_id = d.id AND statut = 'reussi' LIMIT 1), 0) as total_valeur,
-           ph.nom as partenaire_nom, ph.telephone as partenaire_telephone,
-           ph.adresse as partenaire_adresse, ph.ville as partenaire_ville
+           COALESCE(MAX(a.prix_unitaire), 0) as valeur_unitaire,
+           COALESCE(MAX(a.prix_unitaire) * d.quantite, MAX(p.montant), 0) as total_valeur,
+           MAX(ph.nom) as partenaire_nom, MAX(ph.telephone) as partenaire_telephone,
+           MAX(ph.adresse) as partenaire_adresse, MAX(ph.ville) as partenaire_ville
     FROM demandes d
     JOIN pharmacies ph ON d.demandeur_id = ph.id
     LEFT JOIN annonces a ON d.annonce_id = a.id
+    LEFT JOIN paiements p ON p.demande_id = d.id AND p.statut = 'reussi'
     WHERE d.destinataire_id = :id 
       AND d.statut NOT IN ('en_attente', 'annulee', 'refusee')
+    GROUP BY d.id, d.produit_nom, d.quantite, d.date_creation, d.statut, d.statut_paiement
     ORDER BY d.date_creation DESC
 ");
 $stmt->execute(['id' => $pharmacieId]);
