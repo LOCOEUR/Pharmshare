@@ -3,18 +3,13 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mer. 25 mars 2026 à 14:41
+-- Généré le : sam. 04 avr. 2026 à 10:10
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
-SET FOREIGN_KEY_CHECKS = 0;
-DROP TABLE IF EXISTS `annonces`, `audit_logs`, `conversations`, `demandes`, `messages`, `mouvements_stock`, `notifications`, `paiements`, `parametres`, `pharmacies`, `produits`, `rapports`, `users`;
-DROP VIEW IF EXISTS `vue_alertes_stock`, `vue_dashboard`;
-SET FOREIGN_KEY_CHECKS = 1;
 
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
@@ -143,7 +138,9 @@ INSERT INTO `audit_logs` (`id`, `pharmacie_id`, `user_id`, `action`, `details`, 
 (16, 2, 3, 'Modification statut demande', '{\"demande_id\":\"3\",\"nouveau_statut\":\"acceptee\",\"produit_nom\":\"Amoxicilline 500mg\"}', '2026-03-25 11:40:56'),
 (17, 6, 11, 'Modification statut demande', '{\"demande_id\":\"30\",\"nouveau_statut\":\"acceptee\",\"produit_nom\":\"Cherche Lovenox 4000 UI\"}', '2026-03-25 11:42:09'),
 (18, 1, 1, 'Modification statut demande', '{\"demande_id\":\"1\",\"nouveau_statut\":\"acceptee\",\"produit_nom\":\"Augmentin 1g\"}', '2026-03-25 11:58:29'),
-(19, 6, 11, 'Paiement Wave réussi', '{\"demande_id\":1,\"montant\":\"2063.00\"}', '2026-03-25 11:59:16');
+(19, 6, 11, 'Paiement Wave réussi', '{\"demande_id\":1,\"montant\":\"2063.00\"}', '2026-03-25 11:59:16'),
+(20, 1, 1, 'Création annonce', '{\"annonce_id\":\"53\",\"titre\":\"THERALENE\",\"type\":\"recherche\"}', '2026-03-30 21:39:19'),
+(21, 1, 1, 'Suppression annonce', '{\"annonce_id\":\"53\"}', '2026-03-30 21:40:06');
 
 -- --------------------------------------------------------
 
@@ -197,7 +194,7 @@ CREATE TABLE `demandes` (
   `type_demande` enum('achat','echange') DEFAULT 'achat',
   `echange_contre` varchar(255) DEFAULT NULL,
   `message` text DEFAULT NULL,
-  `statut` enum('en_attente','acceptee','refusee','annulee','terminee','compense','') DEFAULT 'en_attente',
+  `statut` enum('en_attente','acceptee','refusee','annulee','terminee') DEFAULT 'en_attente',
   `statut_paiement` varchar(50) DEFAULT 'non_paye',
   `motif_refus` text DEFAULT NULL,
   `date_creation` datetime DEFAULT current_timestamp(),
@@ -1584,11 +1581,11 @@ CREATE TABLE `rapports` (
 
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
-  `pharmacie_id` int(11) NOT NULL,
+  `pharmacie_id` int(11) DEFAULT NULL,
   `nom` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `mot_de_passe` varchar(255) NOT NULL,
-  `role` enum('admin','pharmacien','auxilliaire') DEFAULT 'pharmacien',
+  `role` enum('admin','pharmacien','auxilliaire','super_admin') DEFAULT 'pharmacien',
   `photo_url` varchar(500) DEFAULT NULL,
   `actif` tinyint(1) DEFAULT 1,
   `derniere_connexion` datetime DEFAULT NULL,
@@ -1600,7 +1597,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `pharmacie_id`, `nom`, `email`, `mot_de_passe`, `role`, `photo_url`, `actif`, `derniere_connexion`, `date_creation`) VALUES
-(1, 1, 'Dr. Kouassi', 'pharmaciedelapaix@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'admin', 'http://localhost/Pharmshare/api/uploads/avatars/avatar_1_69a02e6503381.png', 1, '2026-03-25 13:02:33', '2026-02-19 09:36:56'),
+(1, 1, 'Dr. Kouassi', 'pharmaciedelapaix@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'admin', 'http://localhost/Pharmshare/api/uploads/avatars/avatar_1_69a02e6503381.png', 1, '2026-04-04 07:22:44', '2026-02-19 09:36:56'),
 (2, 1, 'marie konan', 'aux.pharmaciedelapaix@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'auxilliaire', NULL, 1, '2026-03-25 10:01:49', '2026-02-19 09:36:56'),
 (3, 2, 'Dr. Bakayoko', 'pharmaciedumarché@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'admin', NULL, 1, '2026-03-25 11:40:30', '2026-02-19 09:36:57'),
 (4, 2, 'Auxilliaire Marché', 'aux.pharmaciedumarché@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'auxilliaire', NULL, 1, '2026-02-18 12:36:57', '2026-02-19 09:36:57'),
@@ -1610,7 +1607,9 @@ INSERT INTO `users` (`id`, `pharmacie_id`, `nom`, `email`, `mot_de_passe`, `role
 (8, 4, 'Auxilliaire Lagunes', 'aux.pharmaciedeslagunes@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'auxilliaire', NULL, 1, '2026-02-17 11:36:59', '2026-02-19 09:37:00'),
 (9, 5, 'Dr. Diallo', 'pharmaciedel\'avenir@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'admin', NULL, 1, '2026-02-19 10:37:00', '2026-02-19 09:37:00'),
 (10, 5, 'Auxilliaire l\'Avenir', 'aux.pharmaciedel\'avenir@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'auxilliaire', NULL, 1, '2026-02-19 02:37:00', '2026-02-19 09:37:01'),
-(11, 6, 'Dr. petey', 'centrale@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'admin', NULL, 1, '2026-03-25 11:58:57', '2026-02-19 10:07:41');
+(11, 6, 'Dr. petey', 'centrale@pharmshare.ci', '$2y$12$cLVkyMbsGQTDBrpuV/fGhuXpJypfV3a/iFlIzRx4S0dbmMqmeLBfK', 'admin', NULL, 1, '2026-03-25 11:58:57', '2026-02-19 10:07:41'),
+(13, NULL, 'Super Administrateur', 'admin@pharmshare.ci', '$2y$12$dstvNk5/1M.stpPXeInUUO6vacEkuzf8jV8sJW58ZmD43yT7rR7Aq', 'super_admin', NULL, 1, '2026-04-03 23:07:46', '2026-04-03 22:07:40'),
+(14, NULL, 'Dr. Nouvelle Demande', 'nouvelle@pharmshare.ci', 'dummy', 'pharmacien', NULL, 0, NULL, '2026-04-03 23:14:16');
 
 -- --------------------------------------------------------
 
@@ -1649,7 +1648,7 @@ CREATE TABLE `vue_dashboard` (
 --
 DROP TABLE IF EXISTS `vue_alertes_stock`;
 
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
 
 -- --------------------------------------------------------
 
@@ -1658,7 +1657,7 @@ CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vue_alertes_stock`  AS SEL
 --
 DROP TABLE IF EXISTS `vue_dashboard`;
 
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
 
 --
 -- Index pour les tables déchargées
@@ -1795,13 +1794,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT pour la table `annonces`
 --
 ALTER TABLE `annonces`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT pour la table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT pour la table `conversations`
@@ -1867,7 +1866,7 @@ ALTER TABLE `rapports`
 -- AUTO_INCREMENT pour la table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- Contraintes pour les tables déchargées
@@ -1939,7 +1938,8 @@ ALTER TABLE `parametres`
 -- Contraintes pour la table `produits`
 --
 ALTER TABLE `produits`
-  ADD CONSTRAINT `produits_ibfk_1` FOREIGN KEY (`pharmacie_id`) REFERENCES `pharmacies` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `produits_ibfk_1` FOREIGN KEY (`pharmacie_id`) REFERENCES `pharmacies` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `produits_ibfk_2` FOREIGN KEY (`categorie_id`) REFERENCES `categories_produits` (`id`) ON DELETE SET NULL;
 
 --
 -- Contraintes pour la table `rapports`
