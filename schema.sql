@@ -1761,7 +1761,6 @@ ALTER TABLE `pharmacies`
 --
 ALTER TABLE `produits`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `categorie_id` (`categorie_id`),
   ADD KEY `idx_pharmacie` (`pharmacie_id`),
   ADD KEY `idx_nom` (`nom`),
   ADD KEY `idx_statut` (`statut`),
