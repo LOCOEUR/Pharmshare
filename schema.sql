@@ -1586,7 +1586,7 @@ CREATE TABLE `users` (
   `mot_de_passe` varchar(255) NOT NULL,
   `role` enum('admin','pharmacien','auxilliaire','super_admin') DEFAULT 'pharmacien',
   `photo_url` varchar(500) DEFAULT NULL,
-  `actif` tinyint(1) DEFAULT 1,
+  `actif` tinyint(1) DEFAULT 0,
   `derniere_connexion` datetime DEFAULT NULL,
   `date_creation` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
