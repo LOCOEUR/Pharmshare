@@ -1648,7 +1648,7 @@ CREATE TABLE `vue_dashboard` (
 --
 DROP TABLE IF EXISTS `vue_alertes_stock`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
+CREATE ALGORITHM=UNDEFINED VIEW `vue_alertes_stock`  AS SELECT `p`.`id` AS `id`, `p`.`nom` AS `nom`, `p`.`stock_actuel` AS `stock_actuel`, `p`.`stock_minimum` AS `stock_minimum`, `p`.`date_expiration` AS `date_expiration`, `ph`.`nom` AS `pharmacie_nom`, CASE WHEN `p`.`stock_actuel` = 0 THEN 'rupture' WHEN `p`.`stock_actuel` <= `p`.`stock_minimum` THEN 'stock_faible' WHEN `p`.`date_expiration` <= curdate() + interval 90 day AND `p`.`stock_actuel` > 0 THEN 'expiration_proche' ELSE 'ok' END AS `alerte_type` FROM (`produits` `p` join `pharmacies` `ph` on(`p`.`pharmacie_id` = `ph`.`id`)) ;
 
 -- --------------------------------------------------------
 
@@ -1657,7 +1657,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `vue_dashboard`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
+CREATE ALGORITHM=UNDEFINED VIEW `vue_dashboard`  AS SELECT `ph`.`id` AS `pharmacie_id`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id`) AS `total_produits`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and (`produits`.`stock_actuel` <= `produits`.`stock_minimum` or `produits`.`stock_actuel` = 0)) AS `produits_en_alerte`, (select count(0) from `produits` where `produits`.`pharmacie_id` = `ph`.`id` and `produits`.`date_expiration` <= curdate() + interval 90 day and `produits`.`stock_actuel` > 0) AS `expirations_proches`, (select count(0) from `notifications` where `notifications`.`pharmacie_id` = `ph`.`id` and `notifications`.`lu` = 0) AS `notifs_non_lues` FROM `pharmacies` AS `ph` ;
 
 --
 -- Index pour les tables déchargées
