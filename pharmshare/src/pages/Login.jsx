@@ -16,8 +16,9 @@ const Login = () => {
         try {
             const res = await login(email, password);
             if (res.success) {
-                toast.success('Bon retour Docteur !');
-                navigate('/dashboard');
+                const role = res.data?.user?.role;
+                toast.success(role === 'super_admin' ? 'Bienvenue Administrateur !' : 'Bon retour Docteur !');
+                navigate(role === 'super_admin' ? '/admin' : '/dashboard');
             }
         } catch (err) {
             toast.error(err.message || 'Erreur de connexion');

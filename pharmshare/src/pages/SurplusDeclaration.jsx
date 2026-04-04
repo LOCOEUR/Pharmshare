@@ -268,14 +268,14 @@ const SurplusDeclaration = () => {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Notes ou Conditions</label>
+                        <label className="form-label">Conditions de Conservation / Dispositions Particulières</label>
                         <textarea
                             className="form-input"
                             rows="3"
                             name="notes"
                             value={formData.notes}
                             onChange={handleFormChange}
-                            placeholder="ex: Boîtes neuves, scellées. À récupérer sur place."
+                            placeholder="ex: À conserver au froid (2°C - 8°C), produit thermosensible nécessitant un transport réfrigéré..."
                         ></textarea>
                     </div>
 
@@ -286,7 +286,17 @@ const SurplusDeclaration = () => {
                                 name="legalConsent"
                                 checked={formData.legalConsent}
                                 onChange={handleFormChange}
-                                style={{ marginTop: '0.2rem', accentColor: 'var(--primary)' }}
+                                style={{ 
+                                    width: '1.5rem', 
+                                    height: '1.5rem', 
+                                    marginTop: '0.1rem', 
+                                    accentColor: 'var(--primary)',
+                                    appearance: 'auto',
+                                    flexShrink: 0,
+                                    margin: 0,
+                                    padding: 0,
+                                    cursor: 'pointer'
+                                }}
                             />
                             <span>
                                 <strong style={{color: 'var(--text-primary)'}}>Engagement Déontologique :</strong> Je certifie que cette transaction relève du dépannage confraternel exceptionnel. Je m'engage à respecter les bonnes pratiques de conservation jusqu'au transfert au confrère. (Conformité AIRP)

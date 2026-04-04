@@ -1,0 +1,207 @@
+/* AdminLayout.css */
+.admin-layout {
+    display: flex;
+    height: 100vh;
+    background: #0f172a;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    overflow: hidden;
+}
+
+/* ========== SIDEBAR ========== */
+.admin-sidebar {
+    width: 240px;
+    min-width: 240px;
+    background: #022c22;
+    border-right: 1px solid rgba(16, 185, 129, 0.2);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    height: 100vh;
+}
+
+/* Brand */
+.admin-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0 1.25rem 1.75rem;
+    border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+    margin-bottom: 1.5rem;
+}
+
+.admin-brand-icon {
+    flex-shrink: 0;
+}
+
+.admin-brand-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #e2e8f0;
+    letter-spacing: -0.02em;
+}
+
+.admin-brand-role {
+    font-size: 0.7rem;
+    color: #6ee7b7;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.1rem;
+}
+
+/* Navigation */
+.admin-sidebar-nav {
+    flex: 1;
+    padding: 0 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    overflow-y: auto;
+}
+
+.admin-nav-section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(110, 231, 183, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.875rem;
+    border-radius: 0.75rem;
+    color: rgba(110, 231, 183, 0.7);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.18s ease;
+}
+
+.admin-nav-item:hover {
+    background: rgba(16, 185, 129, 0.12);
+    color: #a7f3d0;
+}
+
+.admin-nav-item.active {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    font-weight: 600;
+}
+
+/* Footer */
+.admin-sidebar-footer {
+    padding: 1.25rem;
+    border-top: 1px solid rgba(16, 185, 129, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: auto;
+}
+
+.admin-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+    overflow: hidden;
+}
+
+.admin-user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 0.6rem;
+    background: linear-gradient(135deg, #10b981, #059669);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.admin-user-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-user-role {
+    font-size: 0.7rem;
+    color: #6ee7b7;
+    margin-top: 0.1rem;
+}
+
+.admin-logout-btn {
+    color: rgba(110, 231, 183, 0.5);
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.admin-logout-btn:hover {
+    color: #ef4444;
+}
+
+/* ========== MAIN CONTENT ========== */
+.admin-main {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg-dark, #0f172a);
+    height: 100vh;
+}
+
+/* ========== LIGHT MODE ========== */
+.admin-layout.light-mode {
+    --bg-dark: #f8fafc;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+}
+
+.admin-layout.light-mode .admin-sidebar {
+    background: #ffffff;
+    border-right: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.admin-layout.light-mode .admin-brand-name {
+    color: #022c22;
+}
+
+.admin-layout.light-mode .admin-nav-item {
+    color: #475569;
+}
+
+.admin-layout.light-mode .admin-nav-item:hover {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+}
+
+.admin-layout.light-mode .admin-nav-item.active {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+}
+
+.admin-layout.light-mode .admin-user-name {
+    color: #0f172a;
+}
+
+.admin-layout.light-mode .admin-nav-section-label {
+    color: #94a3b8;
+}
+
+.admin-layout.light-mode .admin-logout-btn {
+    color: #64748b;
+}
+
+.admin-layout.light-mode .admin-logout-btn:hover {
+    color: #047857;
+}

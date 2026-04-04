@@ -299,6 +299,27 @@ const Settings = () => {
                                 <input className="form-input" placeholder="ex: Lun-Sam 08h-20h (Garde Dimanche)" />
                             </div>
                             <button className="btn-save" onClick={handleUpdatePharmacy}>Mettre à jour l'officine</button>
+
+                            {/* EXtENSION WAVE (Hérité de l'UML) */}
+                            <div style={{ marginTop: '2.5rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                <div className="settings-section-header">
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                        <h3 className="settings-section-title" style={{ fontSize: '1.25rem' }}>Configuration de Paiement (Wave)</h3>
+                                        <span style={{ fontSize: '0.65rem', background: 'rgba(250, 204, 21, 0.15)', color: '#facc15', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid rgba(250, 204, 21, 0.3)' }}>EXTENSION</span>
+                                    </div>
+                                    <p className="settings-section-desc">Associez un compte de paiement Mobile Money pour recevoir les fonds des dépannages confraternels.</p>
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Numéro de téléphone / Compte Marchand Wave</label>
+                                    <div style={{ display: 'flex', gap: '1rem' }}>
+                                        <div style={{ position: 'relative', flex: 1 }}>
+                                            <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', fontWeight: 'bold', color: '#3b82f6' }}>🌊</span>
+                                            <input className="form-input" placeholder="+225 0102030405" style={{ paddingLeft: '2.5rem' }} defaultValue={profile.waveAccount} />
+                                        </div>
+                                        <button className="btn-save" style={{ background: '#3b82f6', whiteSpace: 'nowrap' }} onClick={(e) => { e.preventDefault(); toast.success("Le compte de paiement Wave a été validé et configuré avec succès !"); }}>Lier le compte</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     )}
 

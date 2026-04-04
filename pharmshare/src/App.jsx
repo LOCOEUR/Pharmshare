@@ -15,8 +15,12 @@ import Notifications from './pages/Notifications';
 import Help from './pages/Help';
 import Logout from './pages/Logout';
 import Balance from './pages/Balance';
+import AdminDashboard from './pages/AdminDashboard';
+import AdminValidations from './pages/AdminValidations';
+import AdminSupport from './pages/AdminSupport';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
+import AdminLayout from './components/AdminLayout';
 import { SearchProvider } from './context/SearchContext';
 
 import { useEffect } from 'react';
@@ -37,11 +41,17 @@ const MobileBlocker = () => (
 
 function App() {
   useEffect(() => {
-    // Démarrer le service temps réel au chargement
-    // Il se connectera uniquement si un token est présent
+    // 🔴 PATCH AUTO-CORRECTION: Si le cache contient le nom Super Administrateur mais que le rôle est vide ou incorrect, on force la reco
+    const user = JSON.parse(localStorage.getItem('pharmshare_user') || 'null');
+    if (user && user.nom === 'Super Administrateur' && user.role !== 'super_admin') {
+      localStorage.removeItem('pharmshare_user');
+      localStorage.removeItem('pharmshare_token');
+      window.location.href = '/login';
+      return;
+    }
+
     realtimeService.start();
 
-    // Demander la permission pour les notifications de bureau
     if (Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -89,6 +99,14 @@ function App() {
           <Route path="/notifications" element={<ProtectedRoute><Layout><Notifications /></Layout></ProtectedRoute>} />
           <Route path="/balance" element={<ProtectedRoute><Layout><Balance /></Layout></ProtectedRoute>} />
           <Route path="/help" element={<ProtectedRoute><Layout><Help /></Layout></ProtectedRoute>} />
+
+          {/* Routes Admin Global - Layout dédié */}
+          <Route path="/admin" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+          <Route path="/admin/pharmacies" element={<ProtectedRoute><AdminLayout><AdminValidations /></AdminLayout></ProtectedRoute>} />
+          <Route path="/admin/support" element={<ProtectedRoute><AdminLayout><AdminSupport /></AdminLayout></ProtectedRoute>} />
+          <Route path="/admin/produits" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+          <Route path="/admin/database" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
+          <Route path="/admin/logs" element={<ProtectedRoute><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
         </Routes>
       </SearchProvider>
     </BrowserRouter>

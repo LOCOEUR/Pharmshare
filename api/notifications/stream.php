@@ -26,6 +26,11 @@ try {
         exit;
     }
     $pharmacieId = $payload['pharmacie_id'];
+    // Le super_admin n'a pas de pharmacie : pas besoin du SSE
+    if ($pharmacieId === null) {
+        echo ": super_admin connected, no SSE needed\n\n";
+        exit;
+    }
 } catch (Exception $e) {
     echo "event: error\ndata: {\"message\": \"Token invalide\"}\n\n";
     exit;

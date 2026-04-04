@@ -22,7 +22,7 @@ $stmt = $db->prepare("
     SELECT u.id, u.nom, u.email, u.mot_de_passe, u.role, u.photo_url, u.pharmacie_id, 
            p.nom as pharmacie_nom, p.ville, p.quartier 
     FROM users u 
-    JOIN pharmacies p ON u.pharmacie_id = p.id 
+    LEFT JOIN pharmacies p ON u.pharmacie_id = p.id 
     WHERE u.email = :email AND u.actif = 1
 ");
 $stmt->execute(['email' => $data['email']]);

@@ -12,6 +12,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 $pharmacieId = getAuthenticatedPharmacieId();
+
+// Le super_admin n'a pas de pharmacie : 0 notification
+if ($pharmacieId === null) {
+    successResponse(["unread_count" => 0]);
+}
+
 $db = (new Database())->getConnection();
 
 $stmt = $db->prepare("SELECT COUNT(*) as count FROM notifications WHERE pharmacie_id = :id AND lu = 0");
