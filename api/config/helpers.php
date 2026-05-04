@@ -2,12 +2,15 @@
 require_once __DIR__ . '/jwt.php';
 
 /**
- * Helper pour les réponses JSON
+ * Helper pour les réponses JSON (Optimisé)
  */
 function jsonResponse($data, $statusCode = 200)
 {
-    http_response_code($statusCode);
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    if (!headers_sent()) {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+    }
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PARTIAL_OUTPUT_ON_ERROR);
     exit;
 }
 
@@ -16,9 +19,11 @@ function errorResponse($message, $statusCode = 400)
     jsonResponse(["success" => false, "error" => $message], $statusCode);
 }
 
-function successResponse($data, $message = "Succès")
+function successResponse($data = null, $message = "Succès")
 {
-    jsonResponse(["success" => true, "message" => $message, "data" => $data]);
+    $res = ["success" => true, "message" => $message];
+    if ($data !== null) $res["data"] = $data;
+    jsonResponse($res);
 }
 
 /**
@@ -32,7 +37,6 @@ function sanitizeInput($data)
         }
     }
     elseif (is_string($data)) {
-        // Supprime les balises HTML et encode les caractères spéciaux
         return htmlspecialchars(strip_tags($data), ENT_QUOTES, 'UTF-8');
     }
     return $data;
@@ -43,9 +47,12 @@ function sanitizeInput($data)
  */
 function getRequestBody()
 {
+    static $bodyData = null;
+    if ($bodyData !== null) return $bodyData;
+    
     $body = file_get_contents("php://input");
-    $data = json_decode($body, true);
-    return $data ?: [];
+    $bodyData = json_decode($body, true) ?: [];
+    return $bodyData;
 }
 
 /**
@@ -98,50 +105,32 @@ function generateToken($userId, $pharmacieId)
 }
 
 /**
- * Vérifie et décode un token JWT
+ * Vérifie et décode un token JWT (Optimisé avec hash_equals)
  */
 function verifyToken($token)
 {
     $parts = explode('.', $token);
-    if (count($parts) !== 3)
-        return null;
+    if (count($parts) !== 3) return null;
 
     $secret = JWT_SECRET;
     $expectedSig = base64_encode(hash_hmac('sha256', "$parts[0].$parts[1]", $secret, true));
 
-    if ($expectedSig !== $parts[2])
-        return null;
+    if (!hash_equals($expectedSig, $parts[2])) return null;
 
     $payload = json_decode(base64_decode($parts[1]), true);
-    if ($payload['exp'] < time())
-        return null;
+    if (!$payload || $payload['exp'] < time()) return null;
 
     return $payload;
 }
 
 /**
- * Récupère l'ID de la pharmacie depuis le token d'authentification
- */
-function getAuthenticatedPharmacieId()
-{
-    $payload = getAuthenticatedTokenPayload();
-    return $payload['pharmacie_id'];
-}
-
-/**
- * Récupère l'ID de l'utilisateur depuis le token d'authentification
- */
-function getAuthenticatedUserId()
-{
-    $payload = getAuthenticatedTokenPayload();
-    return $payload['user_id'];
-}
-
-/**
- * Récupère le payload décodé du token si authentifié
+ * Récupère le payload décodé du token avec mise en cache statique (Performance ++)
  */
 function getAuthenticatedTokenPayload()
 {
+    static $cachedPayload = null;
+    if ($cachedPayload !== null) return $cachedPayload;
+
     $headers = getallheaders();
     $authHeader = $headers['Authorization'] ?? $headers['authorization'] ?? '';
 
@@ -150,27 +139,41 @@ function getAuthenticatedTokenPayload()
     }
 
     $token = substr($authHeader, 7);
-    $payload = verifyToken($token);
+    $cachedPayload = verifyToken($token);
 
-    if (!$payload) {
+    if (!$cachedPayload) {
         errorResponse("Token invalide ou expiré", 401);
     }
 
-    return $payload;
+    return $cachedPayload;
+}
+
+function getAuthenticatedPharmacieId()
+{
+    $payload = getAuthenticatedTokenPayload();
+    return $payload['pharmacie_id'];
+}
+
+function getAuthenticatedUserId()
+{
+    $payload = getAuthenticatedTokenPayload();
+    return $payload['user_id'];
 }
 
 /**
- * Enregistre une action dans le journal d'audit
+ * Enregistre une action dans le journal d'audit (Optimisé avec Singleton BDD)
  */
 function logAudit($action, $details = null)
 {
     try {
-        global $db;
-        $pdo = $db ?? (new Database())->getConnection();
+        static $pdo = null;
+        if ($pdo === null) {
+            global $db;
+            $pdo = $db ?? (new Database())->getConnection();
+        }
 
         $payload = getAuthenticatedTokenPayload();
-        if (!$payload)
-            return;
+        if (!$payload) return;
 
         $stmt = $pdo->prepare("
             INSERT INTO audit_logs (pharmacie_id, user_id, action, details) 
@@ -184,7 +187,6 @@ function logAudit($action, $details = null)
         ]);
     }
     catch (Exception $e) {
-        // Ne pas bloquer l'application si le log echoue
         error_log("Erreur Audit Log: " . $e->getMessage());
     }
 }

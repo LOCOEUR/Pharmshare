@@ -23,6 +23,13 @@ const Dashboard = () => {
 
     useEffect(() => {
         loadDashboard();
+
+        // Rafraîchissement automatique toutes les 5 secondes
+        const interval = setInterval(() => {
+            loadDashboard();
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, [loadDashboard]);
 
     const pharmacie = dashData?.pharmacie || {};

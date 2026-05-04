@@ -97,9 +97,9 @@ export async function signup(userData) {
         method: 'POST',
         body: JSON.stringify(userData),
     });
-    if (res.success) {
-        setToken(res.data.token);
-        setUser(res.data.user);
+    if (res.success && res.data) {
+        if (res.data.token) setToken(res.data.token);
+        if (res.data.user) setUser(res.data.user);
     }
     return res;
 }
@@ -175,8 +175,8 @@ export async function deleteProduct(id) {
 // MARCHÉ / BOURSE D'ÉCHANGE
 // ============================================================
 
-export async function getMarketItems(search = '', filter = 'all') {
-    const params = new URLSearchParams({ search, filter });
+export async function getMarketItems(search = '', filter = 'all', sort = 'date') {
+    const params = new URLSearchParams({ search, filter, sort });
     const res = await apiRequest(`/market/index.php?${params}`);
     return res.data;
 }

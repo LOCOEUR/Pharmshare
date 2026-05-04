@@ -42,9 +42,32 @@ if ($method === 'POST') {
     $action = $data['action'];
     
     if ($action === 'approve') {
-        $db->query("UPDATE users SET actif = 1 WHERE id = " . $userId);
+        // Activer l'utilisateur
+        $stmt = $db->prepare("UPDATE users SET actif = 1 WHERE id = :id");
+        $stmt->execute(['id' => $userId]);
+
+        // Récupérer les infos pour l'envoi du mail
+        $stmt = $db->prepare("SELECT nom, email FROM users WHERE id = :id");
+        $stmt->execute(['id' => $userId]);
+        $user = $stmt->fetch();
+
+        if ($user) {
+            $to = $user['email'];
+            $subject = "Bienvenue sur PharmShare - Votre compte est activé !";
+            $message = "Bonjour " . $user['nom'] . ",\n\n" .
+                       "Nous avons le plaisir de vous informer que votre compte PharmShare a été validé par notre équipe.\n" .
+                       "Vous pouvez désormais vous connecter à la plateforme pour gérer vos surplus et accéder au marché.\n\n" .
+                       "Lien de connexion : http://votre-site.com/login\n\n" .
+                       "L'équipe PharmShare.";
+            $headers = "From: contact@pharmshare.com\r\n" .
+                       "Reply-To: contact@pharmshare.com\r\n" .
+                       "X-Mailer: PHP/" . phpversion();
+
+            @mail($to, $subject, $message, $headers);
+        }
     } else if ($action === 'reject') {
-        $db->query("DELETE FROM users WHERE id = " . $userId);
+        $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
+        $stmt->execute(['id' => $userId]);
     }
     successResponse(["message" => "Action effectuée"]);
 }

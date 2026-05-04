@@ -69,15 +69,22 @@ const Requests = () => {
     useEffect(() => {
         loadRequests();
 
-        // Abonnement au temps réel
+        // Rafraîchissement automatique toutes les 3 secondes
+        const interval = setInterval(() => {
+            loadRequests();
+        }, 3000);
+
+        // Abonnement au temps réel (existant)
         const unsubscribe = realtimeService.subscribe(({ type }) => {
             if (type === 'notification') {
-                // Si on reçoit une notification (souvent liée à un changement de statut de demande), on rafraîchit
                 loadRequests();
             }
         });
 
-        return () => unsubscribe();
+        return () => {
+            clearInterval(interval);
+            unsubscribe();
+        };
     }, [loadRequests]);
 
     const handleAction = async (id, action) => {
@@ -115,9 +122,7 @@ const Requests = () => {
         }
     };
 
-    const [showTracking, setShowTracking] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [trackingProgress, setTrackingProgress] = useState(0);
     const [showReceipt, setShowReceipt] = useState(false);
 
     const handleInitPayment = async (e) => {
@@ -155,116 +160,7 @@ const Requests = () => {
         }
     };
 
-    useEffect(() => {
-        if (showTracking && selectedRequest) {
-            // Charger Leaflet dynamiquement
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(link);
-
-            const script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-            script.async = true;
-            script.onload = () => initRealMap();
-            document.body.appendChild(script);
-
-            return () => {
-                if (document.head.contains(link)) document.head.removeChild(link);
-                if (document.body.contains(script)) document.body.removeChild(script);
-            };
-        }
-    }, [showTracking, selectedRequest]);
-
-    const initRealMap = async () => {
-        if (!window.L) return;
-        const L = window.L;
-
-        // Coordonnées réelles pour Abidjan (Pharmacie Adjamé vers Cocody)
-        const startPos = [5.3571, -4.0189];
-        const endPos = [5.3444, -3.9615];
-
-        const mapElement = document.getElementById('tracking-map');
-        if (!mapElement || mapElement._leaflet_id) return;
-
-        // Style de carte Clair & Professionnel (Voyager)
-        const map = L.map('tracking-map', {
-            zoomControl: false,
-            attributionControl: false
-        }).setView(startPos, 14);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 20
-        }).addTo(map);
-
-        const startIcon = L.divIcon({
-            className: 'custom-map-marker',
-            html: '<div class="marker-pin start"></div>',
-            iconSize: [30, 42],
-            iconAnchor: [15, 42]
-        });
-
-        const endIcon = L.divIcon({
-            className: 'custom-map-marker',
-            html: '<div class="marker-pin destination"></div>',
-            iconSize: [30, 42],
-            iconAnchor: [15, 42]
-        });
-
-        const carIcon = L.divIcon({
-            className: 'car-marker',
-            html: '<div class="car-wrapper"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg></div>',
-            iconSize: [44, 44],
-            iconAnchor: [22, 22]
-        });
-
-        L.marker(startPos, { icon: startIcon }).addTo(map);
-        L.marker(endPos, { icon: endIcon }).addTo(map);
-
-        try {
-            // Récupérer le tracé réel par la route via OSRM
-            const response = await fetch(`https://router.project-osrm.org/route/v1/driving/${startPos[1]},${startPos[0]};${endPos[1]},${endPos[0]}?overview=full&geometries=geojson`);
-            const data = await response.json();
-            const routeCoordinates = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-
-
-            const carMarker = L.marker(startPos, { icon: carIcon }).addTo(map);
-
-            // Animation le long de la route (SANS rotation)
-            let step = 0;
-            const totalSteps = routeCoordinates.length;
-            const animationInterval = setInterval(() => {
-                if (step >= totalSteps - 1) {
-                    clearInterval(animationInterval);
-                    setTrackingProgress(100);
-                    return;
-                }
-
-                const nextP = routeCoordinates[step + 1];
-
-                carMarker.setLatLng(nextP);
-                setTrackingProgress(Math.round((step / totalSteps) * 100));
-
-                if (step % 5 === 0) {
-                    map.panTo(nextP, { animate: true, duration: 0.5 });
-                }
-
-                step++;
-            }, 100);
-
-        } catch (error) {
-            console.error("Routing error:", error);
-            // Fallback: ligne droite si l'API échoue
-            L.polyline([startPos, endPos], { color: '#10B981', weight: 5, opacity: 0.6, dashArray: '10, 10' }).addTo(map);
-        }
-    };
-
-    const openTracking = (req) => {
-        setSelectedRequest(req);
-        setShowTracking(true);
-        setTrackingProgress(0);
-    };
+    // Fin de la logique de paiement
 
     const RequestSkeleton = () => (
         <div className="request-card" style={{ opacity: 0.6 }}>
@@ -343,103 +239,24 @@ const Requests = () => {
                 </div>
             )}
 
-            {/* Volet modal de suivi */}
-            {showTracking && selectedRequest && (
-                <div className="tracking-overlay" onClick={() => setShowTracking(false)}>
-                    <div className="tracking-modal" onClick={e => e.stopPropagation()}>
-                        <div className="tracking-header">
-                            <div>
-                                <h2 style={{ margin: 0 }}>Suivi de la commande #{selectedRequest.id}</h2>
-                                <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                                    {selectedRequest.item} — {selectedRequest.quantity} boîtes en transit
-                                </p>
-                            </div>
-                            <button
-                                onClick={() => setShowTracking(false)}
-                                style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '10px' }}
-                            >
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                            </button>
-                        </div>
-
-                        <div className="tracking-content">
-                            <div className="tracking-map-container">
-                                <div id="tracking-map"></div>
-
-                                <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', background: 'rgba(11, 21, 19, 0.9)', padding: '1rem', borderRadius: '1rem', backdropFilter: 'blur(10px)', border: '1px solid rgba(16, 185, 129, 0.3)', zIndex: 1000, minWidth: '200px' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                        <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-secondary)' }}>Status Livraison</span>
-                                        <span style={{ color: 'var(--primary)', fontWeight: 800 }}>{trackingProgress}%</span>
-                                    </div>
-                                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', overflow: 'hidden' }}>
-                                        <div style={{ width: `${trackingProgress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.3s' }}></div>
-                                    </div>
-                                    <div style={{ marginTop: '0.75rem', fontSize: '0.9rem', fontWeight: 600 }}>
-                                        {trackingProgress < 25 ? '📦 Préparation...' :
-                                            trackingProgress < 60 ? '🚚 En route' :
-                                                trackingProgress < 100 ? '📍 Proche de vous' : '✅ Arrivé !'}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="tracking-sidebar">
-                                <h3 style={{ marginTop: 0 }}>Étapes de Livraison</h3>
-                                <div className="status-steps">
-                                    <div className={`status-step ${trackingProgress >= 0 ? 'completed' : ''}`}>
-                                        <div className="step-indicator">✓</div>
-                                        <div className="step-label">
-                                            <h4>Commande Validée</h4>
-                                            <p>La pharmacie partenaire a accepté l'offre.</p>
-                                        </div>
-                                    </div>
-                                    <div className={`status-step ${trackingProgress >= 25 ? 'completed' : trackingProgress > 0 ? 'active' : ''}`}>
-                                        <div className="step-indicator">{trackingProgress >= 25 ? '✓' : '2'}</div>
-                                        <div className="step-label">
-                                            <h4>Préparation du colis</h4>
-                                            <p>Le lot est en cours d'emballage.</p>
-                                        </div>
-                                    </div>
-                                    <div className={`status-step ${trackingProgress >= 60 ? 'completed' : trackingProgress > 25 ? 'active' : ''}`}>
-                                        <div className="step-indicator">{trackingProgress >= 60 ? '✓' : '3'}</div>
-                                        <div className="step-label">
-                                            <h4>En cours de transit</h4>
-                                            <p>Le livreur est en route vers votre officine.</p>
-                                        </div>
-                                    </div>
-                                    <div className={`status-step ${trackingProgress >= 100 ? 'completed' : trackingProgress > 60 ? 'active' : ''}`}>
-                                        <div className="step-indicator">{trackingProgress >= 100 ? '✓' : '4'}</div>
-                                        <div className="step-label">
-                                            <h4>Livraison effectuée</h4>
-                                            <p>Le colis a été réceptionné et vérifié.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="tracking-footer">
-                            <button className="btn-print" onClick={() => setShowReceipt(true)}>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                                Générer Bon de Livraison (PDF)
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Modal supprimé */}
 
             {/* Volet modal du bon de réception */}
             {showReceipt && selectedRequest && (
                 <div className="tracking-overlay" onClick={() => setShowReceipt(false)} style={{ zIndex: 1100 }}>
-                    <div className="receipt-modal-content" onClick={e => e.stopPropagation()} style={{ background: 'transparent', width: 'auto', height: 'auto', overflow: 'visible' }}>
-                        <div style={{ position: 'absolute', top: '20px', right: '-60px' }}>
+                    <div className="receipt-modal-content" onClick={e => e.stopPropagation()} style={{ position: 'relative', background: 'transparent', width: 'auto', height: 'auto', overflow: 'visible' }}>
+                        <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 2000 }}>
                             <button
                                 onClick={() => setShowReceipt(false)}
-                                style={{ background: 'rgba(0,0,0,0.5)', border: 'none', color: 'white', cursor: 'pointer', padding: '10px', borderRadius: '50%' }}
+                                style={{ background: '#10b981', border: 'none', color: 'white', cursor: 'pointer', padding: '10px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.4)', transition: 'transform 0.2s' }}
+                                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.1)'}
+                                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+                                title="Fermer le bon"
                             >
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
-                        <div style={{ maxHeight: '90vh', overflowY: 'auto', borderRadius: '1.5rem' }}>
+                        <div style={{ maxHeight: '90vh', overflowY: 'auto', borderRadius: '1.5rem', background: '#fff' }}>
                             <Receipt data={selectedRequest} />
                         </div>
                     </div>
@@ -517,14 +334,9 @@ const Requests = () => {
                             </span>
 
                             {req.status === 'Approved' && (
-                                <button className="btn-track" onClick={() => openTracking(req)}>
-                                    Suivre
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                        <rect x="1" y="3" width="15" height="13"></rect>
-                                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                                    </svg>
+                                <button className="btn-track" style={{ backgroundColor: '#10b981', color: 'white', border: 'none', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.2)' }} onClick={() => { setSelectedRequest(req); setShowReceipt(true); }}>
+                                    Bon
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                                 </button>
                             )}
 

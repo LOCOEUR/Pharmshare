@@ -18,6 +18,8 @@ import Balance from './pages/Balance';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminValidations from './pages/AdminValidations';
 import AdminSupport from './pages/AdminSupport';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';
@@ -86,6 +88,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/logout" element={<Logout />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* Pages protégées avec Layout partagé */}
           <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />

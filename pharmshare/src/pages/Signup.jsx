@@ -14,13 +14,44 @@ const Signup = () => {
         ville: 'Abidjan',
         quartier: '',
         licence_numero: '',
-        responsable: ''
+        responsable: '',
+        latitude: null,
+        longitude: null
     });
+    const [locating, setLocating] = useState(false);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleLocation = () => {
+        if (!navigator.geolocation) {
+            toast.error("La géolocalisation n'est pas supportée par votre navigateur");
+            return;
+        }
+
+        setLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                setFormData(prev => ({
+                    ...prev,
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                }));
+                setLocating(false);
+                toast.success("Position récupérée avec succès !");
+            },
+            (error) => {
+                setLocating(false);
+                let msg = "Erreur de localisation";
+                if (error.code === 1) msg = "Veuillez autoriser l'accès à la position";
+                toast.error(msg);
+                console.error(error);
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
     };
 
     const handleSubmit = async (e) => {
@@ -29,8 +60,10 @@ const Signup = () => {
         try {
             const res = await signup(formData);
             if (res.success) {
-                toast.success('Bienvenue dans le réseau PharmShare !');
-                navigate('/dashboard');
+                toast.success('Votre compte a été créé ! Un administrateur va le valider prochainement.', {
+                    duration: 8000
+                });
+                navigate('/login');
             }
         } catch (err) {
             toast.error(err.message || "Erreur lors de l'inscription");
@@ -130,21 +163,47 @@ const Signup = () => {
                                     <input
                                         type="text"
                                         name="quartier"
-                                        placeholder="Quartier"
+                                        placeholder="Commune"
                                         value={formData.quartier}
                                         onChange={handleChange}
                                         required
                                     />
                                 </div>
                             </div>
-                            <div className="input-group">
-                                <input
-                                    type="text"
-                                    name="adresse"
-                                    placeholder="Adresse complète"
-                                    value={formData.adresse}
-                                    onChange={handleChange}
-                                />
+                            
+                            <div className="geolocation-box" style={{ marginTop: '0.5rem' }}>
+                                <button 
+                                    type="button" 
+                                    className={`btn-geo ${formData.latitude ? 'success' : ''}`}
+                                    onClick={handleLocation}
+                                    disabled={locating}
+                                    style={{
+                                        width: '100%',
+                                        padding: '0.6rem',
+                                        borderRadius: '0.5rem',
+                                        border: '1px dashed var(--primary)',
+                                        background: formData.latitude ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                                        color: formData.latitude ? '#10B981' : 'var(--text-secondary)',
+                                        fontSize: '0.85rem',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '0.5rem',
+                                        transition: 'all 0.2s'
+                                    }}
+                                >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    {locating ? 'Localisation en cours...' : formData.latitude ? 'Position enregistrée ✓' : 'Localiser ma pharmacie (recommandé)'}
+                                </button>
+                                {formData.latitude && (
+                                    <p style={{ fontSize: '0.7rem', color: '#10B981', margin: '0.3rem 0 0 0', textAlign: 'center' }}>
+                                        Coordonnées : {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -208,7 +267,7 @@ const Signup = () => {
 
                 <div className="signup-footer">
                     <p>
-                        En vous inscrivant, vous acceptez nos <a href="#">Conditions</a> et <a href="#">Politique de confidentialité</a>.
+                        En vous inscrivant, vous acceptez nos <Link to="/terms">Conditions</Link> et <Link to="/privacy">Politique de confidentialité</Link>.
                     </p>
                 </div>
             </div>

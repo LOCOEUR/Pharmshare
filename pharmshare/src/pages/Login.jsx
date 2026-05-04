@@ -111,7 +111,7 @@ const Login = () => {
 
                 <div className="login-footer">
                     <p>
-                        En continuant, vous acceptez nos <a href="#">Conditions d'utilisation</a> et notre <a href="#">Politique de confidentialité</a>.
+                        En continuant, vous acceptez nos <Link to="/terms">Conditions d'utilisation</Link> et notre <Link to="/privacy">Politique de confidentialité</Link>.
                     </p>
                 </div>
             </div>

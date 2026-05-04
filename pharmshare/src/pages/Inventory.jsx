@@ -55,6 +55,12 @@ const Inventory = () => {
 
     useEffect(() => {
         loadInventory();
+
+        const interval = setInterval(() => {
+            loadInventory();
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, [loadInventory]);
 
     const validateForm = (data) => {

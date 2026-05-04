@@ -76,148 +76,162 @@ switch ($_SERVER['REQUEST_METHOD']) {
         break;
 
     case 'POST':
-        $data = getRequestBody();
-        validateRequired($data, ['destinataire_id', 'produit_nom', 'quantite']);
+        try {
+            $data = getRequestBody();
+            validateRequired($data, ['destinataire_id', 'produit_nom', 'quantite']);
 
-        $stmt = $db->prepare("
-            INSERT INTO demandes (annonce_id, demandeur_id, destinataire_id, produit_nom, quantite, type_demande, echange_contre, message)
-            VALUES (:annonce_id, :demandeur_id, :destinataire_id, :produit_nom, :quantite, :type_demande, :echange_contre, :message)
-        ");
-        $stmt->execute([
-            'annonce_id' => $data['annonce_id'] ?? null,
-            'demandeur_id' => $pharmacieId,
-            'destinataire_id' => (int)$data['destinataire_id'],
-            'produit_nom' => $data['produit_nom'],
-            'quantite' => (int)$data['quantite'],
-            'type_demande' => $data['type_demande'] ?? 'achat',
-            'echange_contre' => $data['echange_contre'] ?? null,
-            'message' => $data['message'] ?? null
-        ]);
-
-        $demandeId = $db->lastInsertId();
-
-        // 1. Mise à jour de l'annonce : passage en "en_negociation" et mise à jour des stocks
-        if ($data['annonce_id']) {
-            $stmt = $db->prepare("UPDATE annonces SET statut = 'en_negociation' WHERE id = :id AND statut = 'active'");
-            $stmt->execute(['id' => (int)$data['annonce_id']]);
-
-            // Equivalent du trigger 'apres_demande_inseree' : mise à jour des stocks
             $stmt = $db->prepare("
-                UPDATE produits p
-                JOIN annonces a ON p.id = a.produit_id
-                SET p.stock_actuel = p.stock_actuel - :quantite,
-                    p.stock_reserve = p.stock_reserve + :quantite
-                WHERE a.id = :annonce_id
+                INSERT INTO demandes (annonce_id, demandeur_id, destinataire_id, produit_nom, quantite, type_demande, echange_contre, message)
+                VALUES (:annonce_id, :demandeur_id, :destinataire_id, :produit_nom, :quantite, :type_demande, :echange_contre, :message)
             ");
             $stmt->execute([
+                'annonce_id' => $data['annonce_id'] ?? null,
+                'demandeur_id' => $pharmacieId,
+                'destinataire_id' => (int)$data['destinataire_id'],
+                'produit_nom' => $data['produit_nom'],
                 'quantite' => (int)$data['quantite'],
-                'annonce_id' => (int)$data['annonce_id']
+                'type_demande' => $data['type_demande'] ?? 'achat',
+                'echange_contre' => $data['echange_contre'] ?? null,
+                'message' => $data['message'] ?? null
             ]);
+
+            $demandeId = $db->lastInsertId();
+
+            if ($data['annonce_id']) {
+                // 1. Marquer l'annonce en négociation
+                $stmt = $db->prepare("UPDATE annonces SET statut = 'en_negociation' WHERE id = :id AND statut = 'active'");
+                $stmt->execute(['id' => (int)$data['annonce_id']]);
+
+                // 2. Vérifier si l'annonce est liée à un produit d'inventaire
+                $stmt = $db->prepare("SELECT produit_id FROM annonces WHERE id = :id");
+                $stmt->execute(['id' => (int)$data['annonce_id']]);
+                $produitId = $stmt->fetchColumn();
+
+                if ($produitId) {
+                    // Si liée à un produit, mise à jour des stocks avec vérification
+                    $stmt = $db->prepare("
+                        UPDATE produits p
+                        SET p.stock_actuel = p.stock_actuel - :q1,
+                            p.stock_reserve = p.stock_reserve + :q2
+                        WHERE p.id = :produit_id AND p.stock_actuel >= :q_check
+                    ");
+                    $stmt->execute([
+                        'q1' => (int)$data['quantite'],
+                        'q2' => (int)$data['quantite'],
+                        'q_check' => (int)$data['quantite'],
+                        'produit_id' => (int)$produitId
+                    ]);
+                    
+                    if ($stmt->rowCount() === 0) {
+                        throw new Exception("Erreur : Stock insuffisant dans l'inventaire du vendeur.");
+                    }
+                }
+            }
+
+            $stmt = $db->prepare("SELECT nom FROM pharmacies WHERE id = :id");
+            $stmt->execute(['id' => $pharmacieId]);
+            $senderName = $stmt->fetchColumn();
+
+            $stmt = $db->prepare("
+                INSERT INTO notifications (pharmacie_id, titre, message, type, lien) 
+                VALUES (:id, :titre, :msg, 'demande', '/requests')
+            ");
+            $stmt->execute([
+                'id' => (int)$data['destinataire_id'],
+                'titre' => 'Nouvelle demande de dépannage',
+                'msg' => "$senderName souhaite emprunter {$data['quantite']} boîtes de {$data['produit_nom']}"
+            ]);
+
+            logAudit("Nouvelle demande", ["demande_id" => $demandeId, "destinataire_id" => (int)$data['destinataire_id'], "produit_nom" => $data['produit_nom']]);
+            successResponse(["id" => $demandeId], "Demande envoyée");
+
+        } catch (Exception $e) {
+            errorResponse($e->getMessage(), 500);
         }
-
-        // 2. Créer une notification pour le destinataire
-        $stmt = $db->prepare("SELECT nom FROM pharmacies WHERE id = :id");
-        $stmt->execute(['id' => $pharmacieId]);
-        $senderName = $stmt->fetchColumn();
-
-        $stmt = $db->prepare("
-            INSERT INTO notifications (pharmacie_id, titre, message, type, lien) 
-            VALUES (:id, :titre, :msg, 'demande', '/requests')
-        ");
-        $stmt->execute([
-            'id' => (int)$data['destinataire_id'],
-            'titre' => 'Nouvelle demande de dépannage',
-            'msg' => "$senderName souhaite emprunter {$data['quantite']} boîtes de {$data['produit_nom']}"
-        ]);
-
-        logAudit("Nouvelle demande", ["demande_id" => $demandeId, "destinataire_id" => (int)$data['destinataire_id'], "produit_nom" => $data['produit_nom']]);
-
-        successResponse(["id" => $demandeId], "Demande envoyée");
         break;
 
     case 'PUT':
-        $id = $_GET['id'] ?? null;
-        if (!$id) errorResponse("ID de la demande requis");
+        try {
+            $id = $_GET['id'] ?? null;
+            if (!$id) errorResponse("ID de la demande requis");
 
-        $data = getRequestBody();
-        validateRequired($data, ['statut']);
+            $data = getRequestBody();
+            validateRequired($data, ['statut']);
 
-        $validStatuts = ['acceptee', 'refusee', 'annulee', 'terminee'];
-        if (!in_array($data['statut'], $validStatuts)) {
-            errorResponse("Statut invalide");
-        }
+            $validStatuts = ['acceptee', 'refusee', 'annulee', 'terminee'];
+            if (!in_array($data['statut'], $validStatuts)) {
+                errorResponse("Statut invalide");
+            }
 
-        // Vérifier que la demande concerne cette pharmacie
-        $stmt = $db->prepare("SELECT * FROM demandes WHERE id = :id AND (demandeur_id = :pid1 OR destinataire_id = :pid2)");
-        $stmt->execute(['id' => $id, 'pid1' => $pharmacieId, 'pid2' => $pharmacieId]);
-        $demande = $stmt->fetch();
-        if (!$demande) errorResponse("Demande non trouvée", 404);
+            $stmt = $db->prepare("SELECT * FROM demandes WHERE id = :id AND (demandeur_id = :pid1 OR destinataire_id = :pid2)");
+            $stmt->execute(['id' => $id, 'pid1' => $pharmacieId, 'pid2' => $pharmacieId]);
+            $demande = $stmt->fetch();
+            if (!$demande) errorResponse("Demande non trouvée", 404);
 
-        $params = ['id' => $id, 'statut' => $data['statut']];
-        $sql = "UPDATE demandes SET statut = :statut";
-        
-        if (isset($data['motif_refus'])) {
-            $sql .= ", motif_refus = :motif";
-            $params['motif'] = $data['motif_refus'];
-        }
-        
-        $sql .= " WHERE id = :id";
-        $stmt = $db->prepare($sql);
-        $stmt->execute($params);
+            $params = ['id' => $id, 'statut' => $data['statut']];
+            $sql = "UPDATE demandes SET statut = :statut";
+            
+            if (isset($data['motif_refus'])) {
+                $sql .= ", motif_refus = :motif";
+                $params['motif'] = $data['motif_refus'];
+            }
+            
+            $sql .= " WHERE id = :id";
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
 
-        // --- Début du remplacement des triggers MySQL ---
-        $oldStatut = $demande['statut'];
-        $nouveauStatut = $data['statut'];
-        $quantite = (int)$demande['quantite'];
-        $annonceId = $demande['annonce_id'];
+            $oldStatut = $demande['statut'];
+            $nouveauStatut = $data['statut'];
+            $quantite = (int)$demande['quantite'];
+            $annonceId = $demande['annonce_id'];
 
-        if ($nouveauStatut === 'terminee' && $oldStatut !== 'terminee' && $annonceId) {
-            // Equivalent du trigger : libère le stock réservé car la demande est confirmée
+            if ($nouveauStatut === 'terminee' && $oldStatut !== 'terminee' && $annonceId) {
+                // Libération du stock réservé
+                $stmt = $db->prepare("
+                    UPDATE produits p
+                    JOIN annonces a ON p.id = a.produit_id
+                    SET p.stock_reserve = p.stock_reserve - :quantite
+                    WHERE a.id = :annonce_id
+                ");
+                $stmt->execute(['quantite' => $quantite, 'annonce_id' => $annonceId]);
+
+                $stmt = $db->prepare("UPDATE annonces SET statut = 'vendue' WHERE id = :id");
+                $stmt->execute(['id' => $annonceId]);
+
+            } elseif (in_array($nouveauStatut, ['annulee', 'refusee']) && $oldStatut === 'en_attente' && $annonceId) {
+                // Retour du stock réservé vers le stock actuel
+                $stmt = $db->prepare("
+                    UPDATE produits p
+                    JOIN annonces a ON p.id = a.produit_id
+                    SET p.stock_actuel = p.stock_actuel + :q1,
+                        p.stock_reserve = p.stock_reserve - :q2
+                    WHERE a.id = :annonce_id
+                ");
+                $stmt->execute(['q1' => $quantite, 'q2' => $quantite, 'annonce_id' => $annonceId]);
+
+                $stmt = $db->prepare("UPDATE annonces SET statut = 'active' WHERE id = :id AND statut = 'en_negociation'");
+                $stmt->execute(['id' => $annonceId]);
+            }
+
+            $notifTarget = ($demande['demandeur_id'] == $pharmacieId) ? $demande['destinataire_id'] : $demande['demandeur_id'];
+            $statutTxt = ['acceptee' => 'acceptée', 'refusee' => 'refusée', 'annulee' => 'annulée', 'terminee' => 'terminée'];
+            
             $stmt = $db->prepare("
-                UPDATE produits p
-                JOIN annonces a ON p.id = a.produit_id
-                SET p.stock_reserve = p.stock_reserve - :quantite
-                WHERE a.id = :annonce_id
+                INSERT INTO notifications (pharmacie_id, titre, message, type, lien) 
+                VALUES (:id, :titre, :msg, 'demande', '/requests')
             ");
-            $stmt->execute(['quantite' => $quantite, 'annonce_id' => $annonceId]);
+            $stmt->execute([
+                'id' => $notifTarget,
+                'titre' => "Demande {$statutTxt[$data['statut']]}",
+                'msg' => "La demande pour {$demande['produit_nom']} a été {$statutTxt[$data['statut']]}"
+            ]);
 
-            // Mise à jour de l'annonce en 'vendue'
-            $stmt = $db->prepare("UPDATE annonces SET statut = 'vendue' WHERE id = :id");
-            $stmt->execute(['id' => $annonceId]);
+            logAudit("Modification statut demande", ["demande_id" => $id, "nouveau_statut" => $data['statut'], "produit_nom" => $demande['produit_nom']]);
+            successResponse(null, "Statut mis à jour");
 
-        } elseif (in_array($nouveauStatut, ['annulee', 'refusee']) && $oldStatut === 'en_attente' && $annonceId) {
-            // Equivalent du trigger : remet le stock réservé dans le stock disponible
-            $stmt = $db->prepare("
-                UPDATE produits p
-                JOIN annonces a ON p.id = a.produit_id
-                SET p.stock_actuel = p.stock_actuel + :quantite,
-                    p.stock_reserve = p.stock_reserve - :quantite
-                WHERE a.id = :annonce_id
-            ");
-            $stmt->execute(['quantite' => $quantite, 'annonce_id' => $annonceId]);
-
-            // On remet l'annonce en état 'active' si ce n'est plus en négociation
-            $stmt = $db->prepare("UPDATE annonces SET statut = 'active' WHERE id = :id AND statut = 'en_negociation'");
-            $stmt->execute(['id' => $annonceId]);
+        } catch (Exception $e) {
+            errorResponse($e->getMessage(), 500);
         }
-        // --- Fin du remplacement ---
-
-        // Notification
-        $notifTarget = ($demande['demandeur_id'] == $pharmacieId) ? $demande['destinataire_id'] : $demande['demandeur_id'];
-        $statutTxt = ['acceptee' => 'acceptée', 'refusee' => 'refusée', 'annulee' => 'annulée', 'terminee' => 'terminée'];
-        $stmt = $db->prepare("
-            INSERT INTO notifications (pharmacie_id, titre, message, type, lien) 
-            VALUES (:id, :titre, :msg, 'demande', '/requests')
-        ");
-        $stmt->execute([
-            'id' => $notifTarget,
-            'titre' => "Demande {$statutTxt[$data['statut']]}",
-            'msg' => "La demande pour {$demande['produit_nom']} a été {$statutTxt[$data['statut']]}"
-        ]);
-
-        logAudit("Modification statut demande", ["demande_id" => $id, "nouveau_statut" => $data['statut'], "produit_nom" => $demande['produit_nom']]);
-
-        successResponse(null, "Statut mis à jour");
         break;
 
     default:

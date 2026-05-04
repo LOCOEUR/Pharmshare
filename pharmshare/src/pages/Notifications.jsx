@@ -28,6 +28,12 @@ const Notifications = () => {
 
     useEffect(() => {
         loadNotifications();
+        
+        const interval = setInterval(() => {
+            loadNotifications();
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, [loadNotifications]);
 
     const handleMarkAsRead = async (id) => {

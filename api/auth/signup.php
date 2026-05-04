@@ -26,8 +26,8 @@ if ($stmt->fetch()) {
 // Créer la pharmacie
 $hashedPassword = hashPassword($data['password']);
 $stmt = $db->prepare("
-    INSERT INTO pharmacies (nom, email, mot_de_passe, telephone, adresse, ville, quartier, responsable, licence_numero) 
-    VALUES (:nom, :email, :mot_de_passe, :telephone, :adresse, :ville, :quartier, :responsable, :licence)
+    INSERT INTO pharmacies (nom, email, mot_de_passe, telephone, adresse, ville, quartier, responsable, licence_numero, latitude, longitude) 
+    VALUES (:nom, :email, :mot_de_passe, :telephone, :adresse, :ville, :quartier, :responsable, :licence, :lat, :lng)
 ");
 
 $stmt->execute([
@@ -39,15 +39,17 @@ $stmt->execute([
     'ville' => $data['ville'] ?? 'Abidjan',
     'quartier' => $data['quartier'] ?? null,
     'responsable' => $data['responsable'] ?? $data['nom'],
-    'licence' => $data['licence_numero'] ?? null
+    'licence' => $data['licence_numero'] ?? null,
+    'lat' => $data['latitude'] ?? null,
+    'lng' => $data['longitude'] ?? null
 ]);
 
 $pharmacieId = $db->lastInsertId();
 
 // Créer l'utilisateur admin pour cette pharmacie
 $stmt = $db->prepare("
-    INSERT INTO users (pharmacie_id, nom, email, mot_de_passe, role) 
-    VALUES (:ph_id, :nom, :email, :pass, 'admin')
+    INSERT INTO users (pharmacie_id, nom, email, mot_de_passe, role, actif) 
+    VALUES (:ph_id, :nom, :email, :pass, 'admin', 0)
 ");
 $stmt->execute([
     'ph_id' => $pharmacieId,
@@ -64,21 +66,11 @@ $stmt->execute(['id' => $pharmacieId]);
 // Créer une notification de bienvenue
 $stmt = $db->prepare("
     INSERT INTO notifications (pharmacie_id, titre, message, type) 
-    VALUES (:id, 'Bienvenue sur PharmShare !', 'Votre compte a été créé avec succès. Commencez par ajouter vos produits à l''inventaire.', 'systeme')
+    VALUES (:id, 'Bienvenue sur PharmShare !', 'Votre compte a été créé avec succès. Il est en attente de validation par l\'administrateur.', 'systeme')
 ");
 $stmt->execute(['id' => $pharmacieId]);
 
-// Générer le token (inclut userId et pharmacieId)
-$token = generateToken($userId, $pharmacieId);
+// On ne génère PAS de token ici pour empêcher l'accès immédiat au dashboard
+// L'utilisateur devra attendre la validation de l'admin pour se connecter
 
-successResponse([
-    "token" => $token,
-    "user" => [
-        "id" => $userId,
-        "pharmacie_id" => $pharmacieId,
-        "nom" => $data['nom'],
-        "email" => $data['email'],
-        "role" => "admin",
-        "pharmacie_nom" => $data['nom']
-    ]
-], "Inscription réussie");
+successResponse(null, "Inscription réussie. Votre compte est en attente de validation par l'administrateur.");

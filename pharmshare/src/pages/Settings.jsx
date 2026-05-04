@@ -353,18 +353,7 @@ const Settings = () => {
                                     <div className="toggle-thumb"></div>
                                 </div>
                             </div>
-                            <div className="toggle-row">
-                                <div className="toggle-info">
-                                    <h4>Notifications Push</h4>
-                                    <p>Alertes en temps réel sur le navigateur/mobile.</p>
-                                </div>
-                                <div
-                                    className={`toggle-switch ${notifications.push ? 'checked' : ''}`}
-                                    onClick={() => toggleNotification('push')}
-                                >
-                                    <div className="toggle-thumb"></div>
-                                </div>
-                            </div>
+
                             <div className="toggle-row">
                                 <div className="toggle-info">
                                     <h4>Alertes Bourse d'Échange</h4>

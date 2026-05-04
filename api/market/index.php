@@ -16,19 +16,39 @@ switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
         $search = $_GET['search'] ?? '';
         $filter = $_GET['filter'] ?? 'all'; // tous, vente, demande, les miennes
+        $sort = $_GET['sort'] ?? 'date'; // date ou proximity
+        $params = [];
+
+        // 1. Récupérer les données de MA pharmacie pour le tri
+        $stmtMe = $db->prepare("SELECT latitude, longitude, quartier FROM pharmacies WHERE id = :me_id");
+        $stmtMe->execute(['me_id' => $pharmacieId]);
+        $me = $stmtMe->fetch();
+        $myLat = $me['latitude'] ?? null;
+        $myLng = $me['longitude'] ?? null;
+        $myQuartier = $me['quartier'] ?? '';
         
         $sql = "
             SELECT a.*, p.nom as produit_nom, p.forme as produit_forme, p.image_url as produit_image,
                    ph.nom as pharmacie_nom, ph.ville, ph.quartier,
                    TIMESTAMPDIFF(HOUR, a.date_creation, NOW()) as heures_depuis
+        ";
+
+        if ($myLat && $myLng) {
+            $sql .= ", (6371 * acos(cos(radians(:my_lat)) * cos(radians(ph.latitude)) * cos(radians(ph.longitude) - radians(:my_lng)) + sin(radians(:my_lat)) * sin(radians(ph.latitude)))) AS distance";
+            $params['my_lat'] = $myLat;
+            $params['my_lng'] = $myLng;
+        } else {
+            $sql .= ", NULL AS distance";
+        }
+
+        $sql .= "
             FROM annonces a
             LEFT JOIN produits p ON a.produit_id = p.id
             JOIN pharmacies ph ON a.pharmacie_id = ph.id
             WHERE 1=1
         ";
-        $params = [];
 
-        // Condition par défaut : annonces visibles (active, negoc ou vendue)
+        // Filter status
         if ($filter !== 'mine') {
             $sql .= " AND a.statut IN ('active', 'en_negociation', 'vendue')";
         } else {
@@ -49,7 +69,17 @@ switch ($_SERVER['REQUEST_METHOD']) {
             $sql .= " AND a.type_annonce IN ('echange', 'don', 'recherche')";
         }
 
-        $sql .= " ORDER BY a.date_creation DESC";
+        // --- LOGIQUE DE TRI ---
+        if ($sort === 'proximity') {
+            if ($myLat && $myLng) {
+                $sql .= " ORDER BY distance ASC, a.date_creation DESC";
+            } else {
+                $sql .= " ORDER BY (ph.quartier = :my_q) DESC, a.date_creation DESC";
+                $params['my_q'] = $myQuartier;
+            }
+        } else {
+            $sql .= " ORDER BY a.date_creation DESC";
+        }
 
         $stmt = $db->prepare($sql);
         $stmt->execute($params);

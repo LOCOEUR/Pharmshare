@@ -14,12 +14,13 @@ const Market = () => {
     const currentPharmacyId = currentUser?.pharmacie_id;
     const { debouncedSearchQuery } = useSearch();
     const [activeFilter, setActiveFilter] = useState('all'); // tout, vente, demande, mes annonces
+    const [sort, setSort] = useState('date'); // date ou proximity
     const [marketItems, setMarketItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const loadMarket = useCallback(async () => {
         try {
-            const data = await getMarketItems(debouncedSearchQuery, activeFilter);
+            const data = await getMarketItems(debouncedSearchQuery, activeFilter, sort);
             // Mapper les données API vers le format du composant
             const mapped = data.map(a => ({
                 id: a.id,
@@ -36,7 +37,8 @@ const Market = () => {
                 description: a.description,
                 echange_contre: a.echange_contre,
                 statut: a.statut,
-                numero_lot: a.numero_lot
+                numero_lot: a.numero_lot,
+                distance: a.distance ? parseFloat(a.distance).toFixed(1) : null
             }));
             setMarketItems(mapped);
         } catch (err) {
@@ -44,10 +46,17 @@ const Market = () => {
         } finally {
             setLoading(false);
         }
-    }, [debouncedSearchQuery, activeFilter]);
+    }, [debouncedSearchQuery, activeFilter, sort]);
 
     useEffect(() => {
         loadMarket();
+
+        // Rafraîchissement automatique toutes les 5 secondes
+        const interval = setInterval(() => {
+            loadMarket();
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, [loadMarket]);
 
     const handleDelete = async (id) => {
@@ -159,6 +168,17 @@ const Market = () => {
                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#60a5fa' }}></span>
                         Demandes
                     </button>
+
+                    {/* Nouveau bouton de tri par proximité */}
+                    <button
+                        className={`market-filter-btn ${sort === 'proximity' ? 'active' : ''}`}
+                        onClick={() => setSort(sort === 'proximity' ? 'date' : 'proximity')}
+                        style={{ border: sort === 'proximity' ? '1px solid var(--primary)' : '1px solid #e5e7eb' }}
+                    >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginRight: '6px' }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        Le plus proche
+                    </button>
+
                     <button
                         className={`market-filter-btn ${activeFilter === 'mine' ? 'active' : ''}`}
                         onClick={() => setActiveFilter('mine')}
@@ -181,9 +201,9 @@ const Market = () => {
                                 {item.statut === 'en_negociation' && (
                                     <span className="market-badge badge-negotiation">🤝 Négociation</span>
                                 )}
-                                 {item.statut === 'vendue' && (
+                                {item.statut === 'vendue' && (
                                     <span className="market-badge badge-sold">✅ Dépanné</span>
-                                 )}
+                                )}
                             </div>
                             <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{item.posted}</span>
                         </div>
@@ -234,7 +254,47 @@ const Market = () => {
                                 </div>
                                 <div>
                                     <div className="pharmacy-name">{item.pharmacy}</div>
-                                    <div className="pharmacy-location">{item.location}</div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                        <div className="pharmacy-location">{item.location}</div>
+                                        {/* On ne montre la proximité QUE pour les autres pharmacies */}
+                                        {String(item.pharmacie_id) !== String(currentPharmacyId) && (
+                                            item.distance ? (
+                                                <span style={{ 
+                                                    fontSize: '0.75rem', 
+                                                    fontWeight: 800, 
+                                                    color: item.distance < 3 ? '#10b981' : '#60a5fa',
+                                                    backgroundColor: item.distance < 3 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(96, 165, 250, 0.1)',
+                                                    padding: '2px 6px',
+                                                    borderRadius: '10px',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '3px'
+                                                }}>
+                                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                                    {item.distance} km
+                                                </span>
+                                            ) : (
+                                                /* FALLBACK : On compare les communes si pas de GPS */
+                                                currentUser?.quartier?.toLowerCase() === item.location?.toLowerCase() && (
+                                                    <span style={{ 
+                                                        fontSize: '0.75rem', 
+                                                        fontWeight: 800, 
+                                                        color: '#10b981',
+                                                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                                        padding: '2px 8px',
+                                                        borderRadius: '10px',
+                                                        border: '1px solid rgba(16, 185, 129, 0.2)'
+                                                    }}>
+                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ marginRight: '4px' }}>
+                                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                                            <circle cx="12" cy="10" r="3"></circle>
+                                                        </svg>
+                                                        Même commune
+                                                    </span>
+                                                )
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -243,7 +303,7 @@ const Market = () => {
                             {(activeFilter === 'mine' || String(item.pharmacie_id) === String(currentPharmacyId)) ? (
                                 <div style={{ textAlign: 'center', width: '100%', padding: '0.5rem' }}>
                                     {item.statut === 'vendue' ? (
-                                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
+                                        <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: 'bold' }}>
                                             ✓ Dépannage effectué
                                         </div>
                                     ) : (
@@ -258,7 +318,7 @@ const Market = () => {
                                     )}
                                 </div>
                             ) : item.statut === 'vendue' ? (
-                                 <button className="btn-contact" disabled style={{ opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#475569' }}>
+                                <button className="btn-contact" disabled style={{ opacity: 0.5, cursor: 'not-allowed', backgroundColor: '#475569' }}>
                                     Indisponible (Dépanné)
                                 </button>
                             ) : (
@@ -267,9 +327,9 @@ const Market = () => {
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                                         Discuter
                                     </button>
-                                    <button className="btn-contact" style={{ flex: 1, backgroundColor: '#10b981' }} onClick={() => handleOrder(item)}>
+                                    <button className="btn-contact" style={{ flex: 1, backgroundColor: item.type === 'request' ? '#3b82f6' : '#10b981' }} onClick={() => handleOrder(item)}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                                        Demander dépannage
+                                        {item.type === 'request' ? 'Proposer ce produit' : 'Demander dépannage'}
                                     </button>
                                 </div>
                             )}

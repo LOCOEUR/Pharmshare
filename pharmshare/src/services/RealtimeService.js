@@ -38,7 +38,7 @@ class RealtimeService {
             this.eventSource.close();
             this.eventSource = null;
             // Reconnexion automatique après 5 secondes
-            setTimeout(() => this.start(), 5000);
+            setTimeout(() => this.start(), 3000);
         };
     }
 

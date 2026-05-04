@@ -21,6 +21,12 @@ const Balance = () => {
 
     useEffect(() => {
         loadBalance();
+        
+        const interval = setInterval(() => {
+            loadBalance();
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, []);
 
     // Mise à jour locale pour que le statut change INSTANTANÉMENT
