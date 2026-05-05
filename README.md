@@ -1,4 +1,4 @@
-# PharmShare - Plateforme de Gestion de Pharmacie
+# PharmShare - Plateforme Collaborative de Mutualisation des Stocks Pharmaceutiques.
 
 PharmShare est une application web moderne permettant aux pharmacies de gérer leur inventaire, d'analyser leurs performances et de faciliter les échanges de produits entre partenaires.
 
